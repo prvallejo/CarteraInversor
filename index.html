@@ -3,16 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>InvestPro Planner 2026</title>
+    <title>InvestPro Planner v3.2026</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
     <header>
-        <h1>InvestPro <span>Global Planner</span></h1>
-        <p>Simulador Tributario de Inversiones 2026</p>
+        <h1>InvestPro <span>Global Planner v3.2026</span></h1>
+        <p>Ingeniería Financiera y Optimización Tributaria Chile-EE.UU.</p>
     </header>
 
     <div class="container">
@@ -20,7 +19,7 @@
             <div class="input-group">
                 <h3>1. Perfil de Ingresos</h3>
                 <label>Sueldo Mensual Bruto (CLP):</label>
-                <input type="number" id="sueldo" value="3500000">
+                <input type="number" id="sueldo" value="3500000" placeholder="Ej: 2500000">
                 <label>Años de Proyección:</label>
                 <select id="horizonte">
                     <option value="5">5 Años</option>
@@ -37,7 +36,7 @@
                 </div>
                 <div id="box_monto">
                     <label>Monto a Invertir hoy (CLP):</label>
-                    <input type="number" id="monto_inicial" value="10000000">
+                    <input type="number" id="monto_inicial" value="10000000" placeholder="Dejar vacío o 0 si no aplica">
                 </div>
             </div>
 
@@ -49,70 +48,72 @@
                 <div id="box_apv" style="display:none;">
                     <label>Monto Mensual APV:</label>
                     <input type="number" id="apv_monto" value="0">
-                    <label>Régimen:</label>
+                    <label>Régimen Seleccionado:</label>
                     <select id="apv_tipo">
-                        <option value="A">Régimen A (Bono 15%)</option>
-                        <option value="B">Régimen B (Ahorro Tax)</option>
+                        <option value="A">Régimen A (Bono 15% Fiscal)</option>
+                        <option value="B">Régimen B (Rebaja de Impuestos)</option>
                     </select>
                 </div>
             </div>
 
             <div class="input-group">
-                <h3>4. Distribución de Cartera</h3>
-                <p class="small-note">Indica cuánto destinarás a cada activo mensualmente (o 0):</p>
+                <h3>4. Ahorro Mensual en Activos</h3>
+                <p class="small-note">Si NO inviertes en algún instrumento, puedes dejar el campo en 0 o vacío.</p>
                 
-                <label>Acciones Chile (Dividendos):</label>
-                <input type="number" id="inv_cl" value="200000" placeholder="CLP/mes">
+                <label>Acciones Chile (DGI):</label>
+                <input type="number" id="inv_cl" value="0" placeholder="CLP/mes">
                 
-                <label>ETFs EE.UU. (Growth):</label>
-                <input type="number" id="inv_us" value="300000" placeholder="CLP/mes">
+                <label>ETFs EE.UU. (VTI/SCHD):</label>
+                <input type="number" id="inv_us" value="0" placeholder="CLP/mes">
                 
                 <label>Money Market (Caja):</label>
-                <input type="number" id="inv_mm" value="100000" placeholder="CLP/mes">
+                <input type="number" id="inv_mm" value="0" placeholder="CLP/mes">
             </div>
 
             <div id="recomendacion-zona"></div>
-            <button type="button" onclick="ejecutarSimulacion()" class="btn-main">EJECUTAR PLAN</button>
-            <button type="button" onclick="generarReportePRO()" class="btn-pdf" id="pdf-btn" style="display:none;">DESCARGAR INFORME EJECUTIVO</button>
+            <button type="button" onclick="ejecutarSimulacion()" class="btn-main">GENERAR PROYECCIÓN</button>
+            <button type="button" onclick="generarReportePRO()" class="btn-pdf" id="pdf-btn" style="display:none;">DESCARGAR INFORME PDF</button>
         </section>
 
-        <section class="panel results-area" id="reporte-area">
-            <div class="report-header">
-                <h2>Resumen de Estrategia Proyectada</h2>
-                <p id="fecha-reporte"></p>
-            </div>
-            
-            <div class="chart-container">
-                <canvas id="projectionChart"></canvas>
-            </div>
-
-            <div class="summary-cards">
-                <div class="card">
-                    <span class="label">Patrimonio Final</span>
-                    <span id="res_total" class="value">$0</span>
+        <section class="panel results-area">
+            <div id="reporte-contenido">
+                <div class="report-header">
+                    <h2>Estrategia Patrimonial Proyectada</h2>
+                    <p id="fecha-reporte"></p>
                 </div>
-                <div class="card">
-                    <span class="label">Impuestos Pagados</span>
-                    <span id="res_tax" class="value">$0</span>
+                
+                <div class="chart-container">
+                    <canvas id="projectionChart"></canvas>
                 </div>
-            </div>
 
-            <div class="table-wrapper">
-                <table id="tax-table">
-                    <thead>
-                        <tr>
-                            <th>Año</th>
-                            <th>Capital</th>
-                            <th>Inv. Mensual Total</th>
-                            <th>Impuestos (IGC/W8)</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
+                <div class="summary-cards">
+                    <div class="card highlight">
+                        <span class="label">Patrimonio Estimado</span>
+                        <span id="res_total" class="value">$0</span>
+                    </div>
+                    <div class="card">
+                        <span class="label">Impuestos Totales</span>
+                        <span id="res_tax" class="value">$0</span>
+                    </div>
+                </div>
+
+                <div class="table-wrapper">
+                    <table id="tax-table">
+                        <thead>
+                            <tr>
+                                <th>Año</th>
+                                <th>Capital Acumulado</th>
+                                <th>Rentabilidad Bruta</th>
+                                <th>Impuestos Año</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
             </div>
         </section>
     </div>
     <script src="app.js"></script>
 </body>
-    </html>
-    
+                        </html>
+                        
