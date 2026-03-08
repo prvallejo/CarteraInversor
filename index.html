@@ -3,77 +3,116 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>InvestPro Ultra 2026</title>
+    <title>InvestPro Planner 2026</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
     <header>
-        <h1>InvestPro <span>Chile & EE.UU.</span></h1>
-        <p>Estrategia Senior para Personas Naturales</p>
+        <h1>InvestPro <span>Global Planner</span></h1>
+        <p>Simulador Tributario de Inversiones 2026</p>
     </header>
 
     <div class="container">
-        <section class="panel">
-            <h2>Configuración del Plan</h2>
-            <form id="pro-form">
+        <section class="panel side-controls">
+            <div class="input-group">
+                <h3>1. Perfil de Ingresos</h3>
                 <label>Sueldo Mensual Bruto (CLP):</label>
                 <input type="number" id="sueldo" value="3500000">
-
-                <label>Monto Inicial (CLP):</label>
-                <input type="number" id="monto" value="10000000">
-                
-                <label>Horizonte (Años):</label>
+                <label>Años de Proyección:</label>
                 <select id="horizonte">
                     <option value="5">5 Años</option>
                     <option value="10">10 Años</option>
                     <option value="20" selected>20 Años</option>
                     <option value="30">30 Años</option>
                 </select>
+            </div>
 
-                <label>Instrumento Principal:</label>
-                <select id="instrumento">
-                    <option value="banco_chile">Acciones Chile (Crédito IDPC)</option>
-                    <option value="schd_us">ETF Dividendos USA (W-8BEN 15%)</option>
-                    <option value="money_market">Money Market / DAP</option>
-                </select>
+            <div class="input-group">
+                <div class="check-header">
+                    <h3>2. Inversión Inicial</h3>
+                    <input type="checkbox" id="check_monto" checked>
+                </div>
+                <div id="box_monto">
+                    <label>Monto a Invertir hoy (CLP):</label>
+                    <input type="number" id="monto_inicial" value="10000000">
+                </div>
+            </div>
 
-                <div class="apv-box">
-                    <label>Ahorro APV Mensual (CLP):</label>
-                    <input type="number" id="apv_monto" value="150000">
-                    <label>Régimen APV:</label>
+            <div class="input-group">
+                <div class="check-header">
+                    <h3>3. Plan APV</h3>
+                    <input type="checkbox" id="check_apv">
+                </div>
+                <div id="box_apv" style="display:none;">
+                    <label>Monto Mensual APV:</label>
+                    <input type="number" id="apv_monto" value="0">
+                    <label>Régimen:</label>
                     <select id="apv_tipo">
                         <option value="A">Régimen A (Bono 15%)</option>
                         <option value="B">Régimen B (Ahorro Tax)</option>
                     </select>
                 </div>
+            </div>
 
-                <div id="recomendacion-zona"></div>
+            <div class="input-group">
+                <h3>4. Distribución de Cartera</h3>
+                <p class="small-note">Indica cuánto destinarás a cada activo mensualmente (o 0):</p>
+                
+                <label>Acciones Chile (Dividendos):</label>
+                <input type="number" id="inv_cl" value="200000" placeholder="CLP/mes">
+                
+                <label>ETFs EE.UU. (Growth):</label>
+                <input type="number" id="inv_us" value="300000" placeholder="CLP/mes">
+                
+                <label>Money Market (Caja):</label>
+                <input type="number" id="inv_mm" value="100000" placeholder="CLP/mes">
+            </div>
 
-                <button type="button" onclick="ejecutarTodo()" class="btn-main">SIMULAR Y OPTIMIZAR</button>
-                <button type="button" onclick="generarPDF()" class="btn-pdf" id="pdf-btn" style="display:none;">DESCARGAR PLAN PDF</button>
-            </form>
+            <div id="recomendacion-zona"></div>
+            <button type="button" onclick="ejecutarSimulacion()" class="btn-main">EJECUTAR PLAN</button>
+            <button type="button" onclick="generarReportePRO()" class="btn-pdf" id="pdf-btn" style="display:none;">DESCARGAR INFORME EJECUTIVO</button>
         </section>
 
-        <section class="panel">
-            <h2>Proyección Patrimonial</h2>
+        <section class="panel results-area" id="reporte-area">
+            <div class="report-header">
+                <h2>Resumen de Estrategia Proyectada</h2>
+                <p id="fecha-reporte"></p>
+            </div>
+            
             <div class="chart-container">
                 <canvas id="projectionChart"></canvas>
             </div>
-            <table id="tax-table">
-                <thead>
-                    <tr>
-                        <th>Año</th>
-                        <th>Capital Final</th>
-                        <th>Dividendos</th>
-                        <th>Impuesto</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
+
+            <div class="summary-cards">
+                <div class="card">
+                    <span class="label">Patrimonio Final</span>
+                    <span id="res_total" class="value">$0</span>
+                </div>
+                <div class="card">
+                    <span class="label">Impuestos Pagados</span>
+                    <span id="res_tax" class="value">$0</span>
+                </div>
+            </div>
+
+            <div class="table-wrapper">
+                <table id="tax-table">
+                    <thead>
+                        <tr>
+                            <th>Año</th>
+                            <th>Capital</th>
+                            <th>Inv. Mensual Total</th>
+                            <th>Impuestos (IGC/W8)</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
         </section>
     </div>
     <script src="app.js"></script>
 </body>
-</html>
+    </html>
+    
