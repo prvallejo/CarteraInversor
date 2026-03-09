@@ -1,11 +1,17 @@
 let myChart = null;
 
+// Función para mostrar/ocultar cajas (Checks)
+function toggleBox(id, el) {
+    document.getElementById(id).style.display = el.checked ? 'block' : 'none';
+}
+
 function ejecutarSimulacion() {
     const sueldo = parseFloat(document.getElementById('sueldo').value) || 0;
-    const inicial = parseFloat(document.getElementById('monto_inicial').value) || 0;
-    const apv = parseFloat(document.getElementById('apv_monto').value) || 0;
+    const inicial = document.getElementById('check_monto').checked ? (parseFloat(document.getElementById('monto_inicial').value) || 0) : 0;
+    const apv = document.getElementById('check_apv').checked ? (parseFloat(document.getElementById('apv_monto').value) || 0) : 0;
     const horizonte = parseInt(document.getElementById('horizonte').value);
     const fondo = document.getElementById('apv_fondo').value;
+    const tipoAPV = document.getElementById('apv_tipo').value;
 
     const tasas = { 'A': 0.07, 'C': 0.05, 'E': 0.03 };
     const r = tasas[fondo];
@@ -16,21 +22,36 @@ function ejecutarSimulacion() {
     let data = [];
     let tableBody = "";
 
+    // Lógica de alerta Régimen
+    const alerta = document.getElementById('alerta-regimen');
+    if (sueldo > 4000000) {
+        alerta.innerHTML = "<strong>💡 Recomendación Técnica:</strong> Su sueldo está en tramos altos. El <strong>Régimen B</strong> es óptimo para rebajar su base imponible actual.";
+        alerta.style.display = 'block';
+    } else {
+        alerta.innerHTML = "<strong>💡 Recomendación Técnica:</strong> Para su nivel de renta, el <strong>Régimen A</strong> (Bono fiscal del 15%) suele ser más rentable.";
+        alerta.style.display = 'block';
+    }
+
     for (let i = 1; i <= horizonte; i++) {
-        let renta = capital * r;
-        let impuesto = (renta * 0.15); // Simplificado para el reporte
+        let rentaAnual = capital * r;
+        let impuesto = (rentaAnual * 0.15); // Factorización de Global Complementario
         totalTax += impuesto;
-        capital += (apv * 12) + renta - impuesto;
+        
+        // Aportes anuales
+        let aportes = apv * 12;
+        if (tipoAPV === 'A') aportes += (aportes * 0.15); // Bono estatal
+        
+        capital += aportes + rentaAnual - impuesto;
 
         labels.push("Año " + i);
         data.push(Math.round(capital));
 
-        if (i === 1 || i === 5 || i === horizonte) {
-            tableBody += `<tr><td>${i}</td><td>$${Math.round(capital).toLocaleString()}</td><td>$${Math.round(renta).toLocaleString()}</td><td>$${Math.round(impuesto).toLocaleString()}</td></tr>`;
+        if (i === 1 || i % 5 === 0 || i === horizonte) {
+            tableBody += `<tr><td>${i}</td><td>$${Math.round(capital).toLocaleString()}</td><td>$${Math.round(rentaAnual).toLocaleString()}</td><td>$${Math.round(impuesto).toLocaleString()}</td></tr>`;
         }
     }
 
-    // Actualizar Interfaz
+    // Mostrar resultados
     document.getElementById('res_total').innerText = `$${Math.round(capital).toLocaleString()}`;
     document.getElementById('res_retiro').innerText = `$${Math.round((capital * 0.04) / 12).toLocaleString()}`;
     document.getElementById('res_tax').innerText = `$${Math.round(totalTax).toLocaleString()}`;
@@ -47,7 +68,7 @@ function renderChart(labels, data) {
         data: {
             labels,
             datasets: [{
-                label: 'Patrimonio',
+                label: 'Crecimiento de Patrimonio',
                 data: data,
                 borderColor: '#3b82f6',
                 backgroundColor: 'rgba(59, 130, 246, 0.2)',
@@ -63,7 +84,7 @@ function exportarPDF() {
     const element = document.getElementById('pdf-content');
     html2pdf().from(element).set({
         margin: 10,
-        filename: 'Reporte_InvestPro.pdf',
+        filename: 'Estrategia_Patrimonial.pdf',
         html2canvas: { scale: 2 },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     }).save();
