@@ -96,6 +96,7 @@ function calcularTasaIGC(rentaAnual) {
     return 0.35;
 }
 
+
 function renderChart(labels, data) {
     const ctx = document.getElementById('projectionChart').getContext('2d');
     if (myChart) myChart.destroy();
@@ -104,4 +105,43 @@ function renderChart(labels, data) {
         data: { labels, datasets: [{ label: 'Patrimonio', data, borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', fill: true, tension: 0.3 }] },
         options: { responsive: true, maintainAspectRatio: false }
     });
+}
+
+// Actualiza esta función para que el gráfico se vea lleno (con color de fondo)
+function renderChart(labels, data) {
+    const ctx = document.getElementById('projectionChart').getContext('2d');
+    if (myChart) myChart.destroy();
+    myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels,
+            datasets: [{
+                label: 'Crecimiento Patrimonio',
+                data: data,
+                borderColor: '#3b82f6',
+                backgroundColor: 'rgba(59, 130, 246, 0.2)', // Esto crea el "relleno"
+                fill: true,
+                tension: 0.3,
+                pointRadius: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { y: { beginAtZero: true } }
+        }
+    });
+}
+
+// Nueva función para el PDF
+function exportarPDF() {
+    const element = document.getElementById('pdf-content');
+    const opt = {
+        margin: 1,
+        filename: 'Reporte_InvestPro.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+    };
+    html2pdf().set(opt).from(element).save();
 }
