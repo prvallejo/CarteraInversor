@@ -104,4 +104,4 @@ function renderChart(labels, data) {
         data: { labels, datasets: [{ label: 'Patrimonio', data, borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', fill: true, tension: 0.3 }] },
         options: { responsive: true, maintainAspectRatio: false }
     });
-        }
+}
