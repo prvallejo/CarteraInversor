@@ -3,20 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>InvestPro v5.5 - Professional</title>
-    <link rel="stylesheet" href="style.css?v=5.5">
+    <title>InvestPro v5.6</title>
+    <link rel="stylesheet" href="style.css?v=5.6">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
     <header>
         <h1>InvestPro <span>Professional</span></h1>
-        <p>Estrategia de Optimización Patrimonial</p>
+        <p>Ingeniería Financiera Aplicada</p>
     </header>
 
     <div class="container">
         <section class="panel side-controls">
-            
             <div class="input-group">
                 <h3>1. Perfil de Ingresos</h3>
                 <label>Sueldo Bruto Mensual (CLP):</label>
@@ -35,7 +34,7 @@
                     <input type="checkbox" id="check_monto" checked onchange="toggleBox('box_monto', this)">
                 </div>
                 <div id="box_monto">
-                    <input type="number" id="monto_inicial" placeholder="Capital actual para invertir">
+                    <input type="number" id="monto_inicial" placeholder="Monto hoy">
                 </div>
             </div>
 
@@ -45,35 +44,32 @@
                     <input type="checkbox" id="check_apv" checked onchange="toggleBox('box_apv', this)">
                 </div>
                 <div id="box_apv">
-                    <label>Ahorro Mensual APV:</label>
-                    <input type="number" id="apv_monto" placeholder="Ej: 300000">
+                    <label>Ahorro Mensual:</label>
+                    <input type="number" id="apv_monto" placeholder="Ej: 250000">
                     <label>Régimen:</label>
                     <select id="apv_tipo" onchange="toggleReinversion()">
-                        <option value="A">Régimen A (Bono Estatal 15%)</option>
-                        <option value="B" selected>Régimen B (Rebaja Tributaria)</option>
+                        <option value="A">Régimen A (Bono 15%)</option>
+                        <option value="B" selected>Régimen B (Ahorro Tax)</option>
                     </select>
                     
-                    <div id="box_reinversion" style="display: flex; align-items: center; margin-top: 12px; background: #f0f9ff; padding: 10px; border-radius: 8px; border: 1px dashed #3b82f6;">
-                        <input type="checkbox" id="check_reinversion" checked style="width: 18px; height: 18px; margin-right: 10px; cursor: pointer;">
-                        <label style="margin: 0; font-size: 11px; color: #1e40af; line-height: 1.2; text-transform: none;">
-                            <strong>¿Reinvierte devolución de impuestos?</strong><br>Suma el ahorro tributario al capital anual.
-                        </label>
+                    <div id="box_reinversion" style="display: flex; align-items: center; margin-top: 10px; background: #eff6ff; padding: 8px; border-radius: 6px; border: 1px dashed #3b82f6;">
+                        <input type="checkbox" id="check_reinversion" checked style="width: 18px; height: 18px; margin-right: 8px;">
+                        <label style="margin: 0; font-size: 11px; color: #1e40af; text-transform: none;">¿Reinvierte ahorro de impuestos?</label>
                     </div>
 
-                    <label>Fondo de Inversión:</label>
+                    <label style="margin-top:10px;">Fondo:</label>
                     <select id="apv_fondo">
-                        <option value="A">Fondo A (Agresivo - 7%)</option>
-                        <option value="C" selected>Fondo C (Moderado - 5%)</option>
-                        <option value="E">Fondo E (Conservador - 3%)</option>
+                        <option value="A">Fondo A (7%)</option>
+                        <option value="C" selected>Fondo C (5%)</option>
+                        <option value="E">Fondo E (3%)</option>
                     </select>
                 </div>
             </div>
 
             <div class="input-group">
                 <h3>4. Otros Activos (Mensual)</h3>
-                <label>Acciones Chile / USA / Money Market:</label>
-                <input type="number" id="inv_cl" placeholder="Acciones Chile" style="margin-bottom: 5px;">
-                <input type="number" id="inv_us" placeholder="ETFs USA" style="margin-bottom: 5px;">
+                <input type="number" id="inv_cl" placeholder="Acciones Chile" style="margin-bottom:5px;">
+                <input type="number" id="inv_us" placeholder="ETFs USA" style="margin-bottom:5px;">
                 <input type="number" id="inv_mm" placeholder="Caja / MM">
             </div>
 
@@ -81,54 +77,35 @@
         </section>
 
         <section class="panel results-area" id="pdf-content">
-            <h2 style="text-align:center; color:#1e293b; margin: 0;">Proyección Patrimonial</h2>
-            <p id="fecha-reporte" style="text-align:center; font-size:11px; color:#94a3b8; margin-top: 5px;"></p>
+            <h2 style="text-align:center; margin:0;">Reporte Patrimonial</h2>
+            <p id="fecha-reporte" style="text-align:center; font-size:11px; color:#94a3b8;"></p>
             
-            <div class="chart-box" style="height: 250px; margin: 20px 0;">
+            <div class="chart-box" style="height:250px; margin:15px 0;">
                 <canvas id="projectionChart"></canvas>
             </div>
 
             <div class="summary-grid">
-                <div class="card card-green">
-                    <span class="label">Patrimonio al Final</span>
-                    <span id="res_total" class="value">$0</span>
-                </div>
-                <div class="card card-blue">
-                    <span class="label">Retiro Mensual (4%)</span>
-                    <span id="res_retiro" class="value">$0</span>
-                </div>
-                <div class="card card-orange">
-                    <span class="label">Impuestos Pagados</span>
-                    <span id="res_tax" class="value">$0</span>
-                </div>
+                <div class="card card-green"><span class="label">Patrimonio</span><span id="res_total" class="value">$0</span></div>
+                <div class="card card-blue"><span class="label">Retiro (4%)</span><span id="res_retiro" class="value">$0</span></div>
+                <div class="card card-orange"><span class="label">Impuestos</span><span id="res_tax" class="value">$0</span></div>
             </div>
 
-            <div id="alerta-regimen" class="alerta-box" style="display:none; margin: 15px 0;"></div>
+            <div id="alerta-regimen" class="alerta-box" style="display:none; margin-bottom:15px;"></div>
 
             <div class="table-wrapper">
                 <table id="tax-table">
-                    <thead>
-                        <tr>
-                            <th>Año</th>
-                            <th>Capital Acum.</th>
-                            <th>Renta Año</th>
-                            <th>Tax</th>
-                        </tr>
-                    </thead>
+                    <thead><tr><th>Año</th><th>Capital</th><th>Renta</th><th>Tax</th></tr></thead>
                     <tbody></tbody>
                 </table>
             </div>
 
-            <div class="legal-footer" style="margin-top: 25px; padding-top: 15px; border-top: 1px solid #e2e8f0; font-size: 10px; color: #94a3b8; text-align: center; line-height: 1.4;">
-                Simulación considera norma vigente chilena tributación e impuesto 2026.<br>
-                Cálculos proyectados en base a rentabilidades históricas de mercado.
-            </div>
-
-            <button type="button" onclick="exportarPDF()" class="btn-pdf">DESCARGAR REPORTE PDF</button>
+            <p style="font-size:9px; color:#94a3b8; text-align:center; margin-top:20px; border-top:1px solid #eee; pt-10;">
+                Simulación considera norma vigente chilena tributación e impuesto 2026.
+            </p>
+            <button type="button" onclick="exportarPDF()" class="btn-pdf">DESCARGAR PDF</button>
         </section>
     </div>
-    
-    <script src="app.js?v=5.5"></script>
+    <script src="app.js?v=5.6"></script>
 </body>
-                    </html>
-                    
+    </html>
+    
