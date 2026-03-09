@@ -1,94 +1,91 @@
-document.getElementById('check_monto').addEventListener('change', e => {
-    document.getElementById('box_monto').style.display = e.target.checked ? 'block' : 'none';
-});
+// Manejo de Interfaz Dinámica
 document.getElementById('check_apv').addEventListener('change', e => {
     document.getElementById('box_apv').style.display = e.target.checked ? 'block' : 'none';
+});
+document.getElementById('check_monto').addEventListener('change', e => {
+    document.getElementById('box_monto').style.display = e.target.checked ? 'block' : 'none';
 });
 
 let myChart = null;
 
 function ejecutarSimulacion() {
-    // Captura segura de datos (maneja vacíos como 0)
-    const getVal = (id) => parseFloat(document.getElementById(id).value) || 0;
+    const getV = (id) => parseFloat(document.getElementById(id).value) || 0;
     
-    const sueldoBruto = getVal('sueldo');
+    // 1. Inputs Base
+    const sueldoBruto = getV('sueldo');
     const horizonte = parseInt(document.getElementById('horizonte').value);
-    
-    let capital = document.getElementById('check_monto').checked ? getVal('monto_inicial') : 0;
+    const inicial = document.getElementById('check_monto').checked ? getV('monto_inicial') : 0;
+    const extraMensual = document.getElementById('check_monto').checked ? getV('inv_mensual') : 0;
 
+    // 2. APV Config
     const usaAPV = document.getElementById('check_apv').checked;
-    const apvMonto = usaAPV ? getVal('apv_monto') : 0;
+    const apvMonto = usaAPV ? getV('apv_monto') : 0;
     const apvTipo = document.getElementById('apv_tipo').value;
+    const fondo = document.getElementById('apv_fondo').value;
 
-    const invCL = getVal('inv_cl');
-    const invUS = getVal('inv_us');
-    const invMM = getVal('inv_mm');
-    const ahorroMensualActivos = invCL + invUS + invMM;
+    // Rentabilidades Reales (Netas de Inflación)
+    const RENTAS = { 'A': 0.07, 'C': 0.05, 'E': 0.03 };
+    const rentAPV = RENTAS[fondo];
+    const rentOtros = 0.045; // Rentabilidad moderada para otros activos
 
-    // Lógica Tributaria Real (Tramo IGC)
-    const rentaLiquidaAnual = (sueldoBruto * 0.8) * 12;
-    const tasaIGC = calcularTasaIGC(rentaLiquidaAnual);
+    // 3. Lógica Tributaria (Impuesto Segunda Categoría / IGC)
+    const rentaLiquida = (sueldoBruto * 0.8) * 12;
+    const tasaIGC = calcularTasaIGC(rentaLiquida);
 
-    // ALERTA TRIBUTARIA CORREGIDA
-    const zonaAlerta = document.getElementById('recomendacion-zona');
-    zonaAlerta.innerHTML = "";
-    // Solo alertar si hay APV activo y el sueldo justifica el Régimen B (tasa > 4%)
+    // Alerta Inteligente
+    const alerta = document.getElementById('recomendacion-zona');
+    alerta.innerHTML = "";
     if (usaAPV && apvMonto > 0) {
         if (tasaIGC >= 0.08 && apvTipo === 'A') {
-            zonaAlerta.innerHTML = `<div class="alert-box"><strong>⚠️ Optimización B:</strong> Tu tasa de impuesto es del ${Math.round(tasaIGC*100)}%. El <b>Régimen B</b> te ahorraría más que el bono del 15%.</div>`;
-        } else if (tasaIGC <= 0.04 && apvTipo === 'B') {
-            zonaAlerta.innerHTML = `<div class="alert-box"><strong>💡 Sugerencia A:</strong> Como pagas poco impuesto, el <b>Régimen A</b> es más eficiente por el bono estatal directo.</div>`;
+            alerta.innerHTML = `<div class="alert-box">🚀 <b>Estrategia B recomendada:</b> Tu tasa de impuesto (${tasaIGC*100}%) hace que el beneficio fiscal del Régimen B sea superior al bono estatal del A.</div>`;
         }
     }
 
-    let labels = [], dataCapital = [];
-    let tablaHTML = "";
+    // 4. Ciclo de Cálculo
+    let capital = inicial;
     let totalTax = 0;
+    let labels = [], data = [];
+    let tablaHTML = "";
 
-    // MOTOR DE CÁLCULO v3.2026
     for (let i = 1; i <= horizonte; i++) {
-        // 1. Definir proporciones de la cartera (si todo es 0, MM es el default para rentar algo)
-        let totalFlujo = ahorroMensualActivos || 1; 
-        let propCL = invCL / totalFlujo;
-        let propUS = invUS / totalFlujo;
-        let propMM = ahorroMensualActivos === 0 ? 1 : invMM / totalFlujo;
+        // Rentabilidad del capital existente
+        let rentaAño = (capital * rentOtros);
+        
+        // Impuesto sobre rentabilidad (estimado 40% tributable)
+        let taxAnual = (rentaAño * 0.4 * tasaIGC);
+        totalTax += taxAnual;
 
-        // 2. Rentabilidad del Capital Acumulado (EL ERROR ESTABA AQUÍ)
-        // Aplicamos rentabilidades ponderadas al capital que YA existe + los nuevos ahorros
-        let rentAnualChile = capital * 0.09 * propCL;
-        let rentAnualUS = capital * 0.11 * propUS;
-        let rentAnualMM = capital * 0.045 * propMM;
-        let rentabilidadBrutaTotal = rentAnualChile + rentAnualUS + rentAnualMM;
+        // Nuevos flujos: Ahorro Extra + APV
+        let ahorroAño = (extraMensual * 12) + (apvMonto * 12);
+        
+        // Rentabilidad específica del APV (aplicada al flujo del año)
+        let rentaAPVCompuesto = (apvMonto * 12) * (rentAPV / 2); // Simplificación lineal primer año
 
-        // 3. Impuestos anuales sobre rentabilidad (estimando dividendos)
-        let impuestoAño = (rentAnualChile * 0.4 * tasaIGC) + (rentAnualUS * 0.4 * 0.15) + (rentAnualMM * 0.4 * tasaIGC);
-        totalTax += impuestoAño;
+        capital += rentaAño + ahorroAño + rentaAPVCompuesto - taxAnual;
 
-        // 4. Actualización de Capital
-        // Capital = Capital Anterior + Ahorro Nuevo (Activos + APV) + Rentas - Impuestos
-        capital += (ahorroMensualActivos * 12) + (apvMonto * 12) + rentabilidadBrutaTotal - impuestoAño;
-
-        // 5. Bono Fiscal APV A (Si aplica)
+        // Bono APV A
         if (usaAPV && apvTipo === 'A' && apvMonto > 0) {
-            capital += Math.min((apvMonto * 12 * 0.15), 455000); // Tope 6 UTM aprox
+            capital += Math.min((apvMonto * 12 * 0.15), 460000); 
         }
 
         labels.push("Año " + i);
-        dataCapital.push(Math.round(capital));
+        data.push(Math.round(capital));
         
-        if (i <= 5 || i % 5 === 0 || i === horizonte) {
-            tablaHTML += `<tr><td>${i}</td><td>$${Math.round(capital).toLocaleString('es-CL')}</td><td>$${Math.round(rentabilidadBrutaTotal).toLocaleString('es-CL')}</td><td>$${Math.round(impuestoAño).toLocaleString('es-CL')}</td></tr>`;
+        if (i % 5 === 0 || i === horizonte) {
+            tablaHTML += `<tr><td>${i}</td><td>$${Math.round(capital).toLocaleString('es-CL')}</td><td>$${Math.round(rentaAño).toLocaleString('es-CL')}</td><td>$${Math.round(taxAnual).toLocaleString('es-CL')}</td></tr>`;
         }
     }
 
-    // UI Update
+    // 5. Resultados de Libertad Financiera
+    const retiroSeguro = (capital * 0.04) / 12; // Regla del 4%
+
     document.querySelector("#tax-table tbody").innerHTML = tablaHTML;
     document.getElementById('res_total').innerText = `$${Math.round(capital).toLocaleString('es-CL')}`;
     document.getElementById('res_tax').innerText = `$${Math.round(totalTax).toLocaleString('es-CL')}`;
-    document.getElementById('fecha-reporte').innerText = `Proyección al ${new Date().toLocaleDateString()}`;
+    document.getElementById('res_retiro').innerText = `$${Math.round(retiroSeguro).toLocaleString('es-CL')}`;
     document.getElementById('pdf-btn').style.display = "block";
     
-    renderChart(labels, dataCapital);
+    renderChart(labels, data);
 }
 
 function calcularTasaIGC(renta) {
@@ -97,8 +94,7 @@ function calcularTasaIGC(renta) {
     if (utmAnual < 13.5) return 0;
     if (utmAnual < 30) return 0.04;
     if (utmAnual < 50) return 0.08;
-    if (utmAnual < 70) return 0.135;
-    return 0.23;
+    return 0.135;
 }
 
 function renderChart(labels, data) {
@@ -106,24 +102,7 @@ function renderChart(labels, data) {
     if (myChart) myChart.destroy();
     myChart = new Chart(ctx, {
         type: 'line',
-        data: { labels, datasets: [{ label: 'Patrimonio Neto', data, borderColor: '#007bff', backgroundColor: 'rgba(0,123,255,0.05)', fill: true, tension: 0.4, pointRadius: 4 }] },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+        data: { labels, datasets: [{ label: 'Capital CLP', data, borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', fill: true, tension: 0.4 }] },
+        options: { responsive: true, maintainAspectRatio: false }
     });
-}
-
-function generarReportePRO() {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    doc.setFont("helvetica", "bold");
-    doc.text("INFORME DE ESTRATEGIA PATRIMONIAL", 20, 20);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
-    doc.text(`Patrimonio Final Proyectado: ${document.getElementById('res_total').innerText}`, 20, 40);
-    doc.text(`Impuestos Totales Estimados: ${document.getElementById('res_tax').innerText}`, 20, 50);
-    doc.text("------------------------------------------------------------------", 20, 60);
-    doc.text("Nota: Simulación basada en tasas impositivas y rentabilidades proyectadas v3.2026.", 20, 70);
-    
-    // Captura el gráfico (opcional, jsPDF básico no captura canvas directamente sin html2canvas, 
-    // pero incluimos los datos clave por ahora)
-    doc.save("Plan_InvestPro_32026.pdf");
-    }
+                                                  }
