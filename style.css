@@ -1,70 +1,136 @@
-/* --- SECCIÓN DE RESULTADOS MEJORADA v4.6 --- */
+:root {
+    --bg: #f1f5f9;
+    --panel: #ffffff;
+    --primary: #1e293b;
+    --accent: #3b82f6;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+}
+
+body { 
+    background: var(--bg); 
+    color: #334155; 
+    font-family: 'Inter', system-ui, -apple-system, sans-serif; 
+    margin: 0; 
+}
+
+header { 
+    background: var(--primary); 
+    color: white; 
+    padding: 25px; 
+    text-align: center; 
+    border-bottom: 5px solid var(--accent);
+}
+
+header h1 span { color: var(--accent); font-weight: 900; }
+
+.container { 
+    display: grid; 
+    grid-template-columns: 1fr; 
+    gap: 20px; 
+    padding: 15px; 
+    max-width: 1400px; 
+    margin: auto; 
+}
+
+@media (min-width: 1024px) {
+    .container { grid-template-columns: 400px 1fr; }
+}
+
+.panel { 
+    background: var(--panel); 
+    padding: 25px; 
+    border-radius: 16px; 
+    box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); 
+}
+
+.input-group { 
+    border-bottom: 1px solid #e2e8f0; 
+    padding-bottom: 15px; 
+    margin-bottom: 15px; 
+}
+
+h3 { font-size: 16px; margin: 0 0 12px 0; color: var(--primary); border-left: 4px solid var(--accent); padding-left: 12px; }
+
+label { font-size: 12px; font-weight: 700; color: #64748b; display: block; margin-top: 10px; text-transform: uppercase; }
+
+input, select { 
+    width: 100%; 
+    padding: 12px; 
+    margin-top: 5px; 
+    border: 2px solid #e2e8f0; 
+    border-radius: 10px; 
+    font-size: 15px;
+    box-sizing: border-box;
+}
+
+input:focus { border-color: var(--accent); outline: none; background: #f8fafc; }
+
+.btn-main { 
+    width: 100%; 
+    padding: 18px; 
+    background: var(--success); 
+    color: white; 
+    border: none; 
+    border-radius: 12px; 
+    font-weight: 800; 
+    font-size: 16px; 
+    cursor: pointer; 
+    margin-top: 15px;
+    box-shadow: 0 4px 6px rgba(16, 185, 129, 0.3);
+}
+
+/* --- TARJETAS DE RESULTADOS (FORZADAS) --- */
 .summary-grid { 
     display: grid; 
     grid-template-columns: 1fr; 
     gap: 15px; 
-    margin-top: 25px; 
+    margin: 20px 0; 
 }
 
-@media (min-width: 640px) {
+@media (min-width: 600px) {
     .summary-grid { grid-template-columns: 1fr 1fr 1fr; }
 }
 
 .card { 
     padding: 25px 15px; 
-    border-radius: 16px; 
+    border-radius: 15px; 
     text-align: center; 
-    background: white;
-    border: 1px solid #e2e8f0;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-    transition: transform 0.2s;
+    color: white !important; 
 }
 
-/* 1. Tarjeta Patrimonio (Verde) */
-.card.main { 
-    background: linear-gradient(135deg, #065f46 0%, #10b981 100%); 
-    color: white;
-    border: none;
-}
-
-/* 2. Tarjeta Retiro Mensual (Azul) - ¡NUEVO! */
-.card.secondary { 
-    background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); 
-    color: white;
-    border: none;
-}
-
-/* 3. Tarjeta Impuestos (Naranja/Rojo) - ¡NUEVO! */
-.card.alert { 
-    background: linear-gradient(135deg, #9a3412 0%, #ea580c 100%); 
-    color: white; 
-    border: none;
-}
-
-/* Estilo de las Frases (Labels) - Más grandes y claras */
 .card .label { 
-    font-size: 14px; /* Aumentado */
-    font-weight: 800; 
-    text-transform: uppercase; 
-    letter-spacing: 1px;
-    margin-bottom: 8px;
-    display: block;
-    color: rgba(255, 255, 255, 0.9); /* Para tarjetas con color */
-}
-
-/* Ajuste para cuando la tarjeta no tiene fondo de color (por si acaso) */
-.card:not(.main):not(.secondary):not(.alert) .label {
-    color: #64748b;
-}
-
-/* Estilo de las Cifras (Values) - Impactantes */
-.card .value { 
-    font-size: 26px; /* Aumentado */
-    font-weight: 900; 
+    font-size: 14px !important; 
+    font-weight: 800 !important; 
     display: block; 
-    color: white;
+    margin-bottom: 8px; 
+    text-transform: uppercase;
+    opacity: 0.9;
 }
 
-.card:hover {
-    transform: translateY(-3px);
+.card .value { 
+    font-size: 26px !important; 
+    font-weight: 900 !important; 
+    display: block; 
 }
+
+/* Colores específicos con gradientes */
+.card.main { background: linear-gradient(135deg, #059669, #10b981) !important; }
+.card.secondary { background: linear-gradient(135deg, #1d4ed8, #3b82f6) !important; }
+.card.alert { background: linear-gradient(135deg, #b91c1c, #ef4444) !important; }
+
+.alert-box { 
+    background: #ecfdf5; 
+    border-left: 5px solid #10b981; 
+    padding: 15px; 
+    border-radius: 8px; 
+    color: #065f46; 
+    font-size: 14px; 
+    margin-top: 15px; 
+}
+
+.table-wrapper { overflow-x: auto; margin-top: 20px; border-radius: 10px; border: 1px solid #e2e8f0; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { background: #f8fafc; padding: 12px; text-align: left; color: #64748b; }
+td { padding: 12px; border-top: 1px solid #e2e8f0; }
