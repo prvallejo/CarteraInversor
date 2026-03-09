@@ -1,25 +1,33 @@
 let myChart = null;
 
+// Al cargar, inicializamos etiquetas
+window.onload = () => {
+    actualizarInterfazAPV();
+    document.querySelectorAll('input[type="checkbox"]').forEach(updateCheckLabel);
+};
+
+function updateCheckLabel(el) {
+    const labelId = el.id === 'check_reinversion' ? 'label_reinv' : 'label_' + el.id;
+    const label = document.getElementById(labelId);
+    if(label) {
+        label.innerText = el.checked ? "SI" : "NO";
+        label.style.color = el.checked ? "#1e40af" : "#64748b";
+    }
+}
+
 function toggleBox(id, el) {
     document.getElementById(id).style.display = el.checked ? 'block' : 'none';
 }
 
-function toggleReinversion() {
+function actualizarInterfazAPV() {
     const tipo = document.getElementById('apv_tipo').value;
     const box = document.getElementById('box_reinversion');
-    if(box) box.style.visibility = (tipo === 'B') ? 'visible' : 'hidden';
+    // Si es RegA, desaparece completamente
+    box.style.display = (tipo === 'B') ? 'flex' : 'none';
 }
 
 function limpiarCampos() {
-    document.querySelectorAll('input[type="number"]').forEach(i => i.value = "");
-    document.querySelectorAll('input[type="checkbox"]').forEach(c => c.checked = false);
-    document.getElementById('check_apv').checked = true;
-    document.getElementById('res_total').innerText = "$0";
-    document.getElementById('res_ahorro_puro').innerText = "$0";
-    document.getElementById('res_ganancia_neta').innerText = "$0";
-    document.getElementById('musk-ratio').innerText = "";
-    if (myChart) { myChart.destroy(); myChart = null; }
-    toggleReinversion();
+    location.reload(); // La forma más limpia de resetear gráfico y valores
 }
 
 function ejecutarSimulacion() {
@@ -43,7 +51,6 @@ function ejecutarSimulacion() {
         let impuesto = (rentaAnual * 0.15);
         totalTax += impuesto;
 
-        // Cálculo de Otros Activos con Recurrencia
         let otrosAnual = 0;
         const activos = [
             { id: 'inv_cl', rec: 'rec_cl' },
@@ -53,12 +60,8 @@ function ejecutarSimulacion() {
 
         activos.forEach(a => {
             let valor = parseFloat(document.getElementById(a.id).value) || 0;
-            let esRecurrente = document.getElementById(a.rec).checked;
-            if (esRecurrente) {
-                otrosAnual += (valor * 12);
-            } else if (i === 1) { // Solo se suma el primer año
-                otrosAnual += (valor * 12);
-            }
+            let recurrente = document.getElementById(a.rec).checked;
+            if (recurrente || i === 1) otrosAnual += (valor * 12);
         });
 
         let aporteBolsillo = (apvMensual * 12) + otrosAnual;
@@ -73,17 +76,20 @@ function ejecutarSimulacion() {
         capital += inyeccionTotal + rentaAnual - impuesto;
         labels.push("Año " + i);
         data.push(Math.round(capital));
+        
         if (i === 1 || i % 5 === 0 || i === horizonte) {
             tableBody += `<tr><td>Año ${i}</td><td>$${Math.round(capital).toLocaleString()}</td><td>$${Math.round(rentaAnual).toLocaleString()}</td><td>$${Math.round(impuesto).toLocaleString()}</td></tr>`;
         }
     }
 
-    // Update UI
     document.getElementById('res_total').innerText = `$${Math.round(capital).toLocaleString()}`;
+    document.getElementById('res_retiro').innerText = `$${Math.round((capital * 0.04) / 12).toLocaleString()}`;
+    document.getElementById('res_tax').innerText = `$${Math.round(totalTax).toLocaleString()}`;
     document.getElementById('res_ahorro_puro').innerText = `$${Math.round(acumuladoBolsillo).toLocaleString()}`;
     document.getElementById('res_ganancia_neta').innerText = `$${Math.round(capital - acumuladoBolsillo).toLocaleString()}`;
-    document.getElementById('musk-ratio').innerText = `🚀 Ratio: +${((capital - acumuladoBolsillo)/acumuladoBolsillo*100).toFixed(1)}%`;
+    document.getElementById('musk-ratio').innerText = `🚀 Eficiencia: +${((capital - acumuladoBolsillo)/acumuladoBolsillo*100).toFixed(1)}% sobre capital propio.`;
     document.querySelector("#tax-table tbody").innerHTML = tableBody;
+    document.getElementById('fecha-reporte').innerText = "Simulación: " + new Date().toLocaleDateString();
 
     renderChart(labels, data);
 }
@@ -95,24 +101,40 @@ function renderChart(labels, data) {
         type: 'line',
         data: {
             labels,
-            datasets: [{ data: data, borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', fill: true }]
+            datasets: [{
+                label: 'Crecimiento',
+                data: data,
+                borderColor: '#3b82f6',
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                fill: true,
+                tension: 0.3
+            }]
         },
-        options: { animation: false, responsive: true, maintainAspectRatio: false }
+        options: { 
+            animation: false, 
+            responsive: true, 
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } }
+        }
     });
 }
 
 function exportarPDF() {
     const element = document.getElementById('pdf-content');
     const btn = document.querySelector('.btn-pdf');
-    btn.style.display = 'none';
-    
-    // El truco para que no salga vacío: Forzar un render antes de capturar
+    btn.style.visibility = 'hidden';
+
+    // Aumentamos el tiempo de espera a 1 segundo para asegurar el render
     setTimeout(() => {
-        html2pdf().set({
-            margin: 10,
-            filename: 'Reporte_InvestPro_v7.pdf',
-            html2canvas: { scale: 2, useCORS: true },
+        const opt = {
+            margin: 5,
+            filename: 'Reporte_Patrimonial_v7.pdf',
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true, logging: false },
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        }).from(element).save().then(() => btn.style.display = 'block');
-    }, 500);
-}
+        };
+        html2pdf().set(opt).from(element).save().then(() => {
+            btn.style.visibility = 'visible';
+        });
+    }, 1000);
+            }
