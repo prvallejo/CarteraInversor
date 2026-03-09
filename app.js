@@ -1,16 +1,22 @@
 let myChart = null;
 
-// Al cargar, inicializamos etiquetas
+// Inicialización
 window.onload = () => {
     actualizarInterfazAPV();
-    document.querySelectorAll('input[type="checkbox"]').forEach(updateCheckLabel);
+    // Forzamos actualización de etiquetas de texto al inicio
+    const checks = ['check_reinversion', 'rec_cl', 'rec_us', 'rec_mm'];
+    checks.forEach(id => {
+        const el = document.getElementById(id);
+        if(el) updateCheckLabel(el);
+    });
 };
 
 function updateCheckLabel(el) {
     const labelId = el.id === 'check_reinversion' ? 'label_reinv' : 'label_' + el.id;
     const label = document.getElementById(labelId);
     if(label) {
-        label.innerText = el.checked ? "SI" : "NO";
+        const baseText = el.id === 'check_reinversion' ? " (¿Reinvierte lo ahorrado en impuesto?)" : " (Recurrente)";
+        label.innerText = el.checked ? "SI" + baseText : "NO" + baseText;
         label.style.color = el.checked ? "#1e40af" : "#64748b";
     }
 }
@@ -22,12 +28,13 @@ function toggleBox(id, el) {
 function actualizarInterfazAPV() {
     const tipo = document.getElementById('apv_tipo').value;
     const box = document.getElementById('box_reinversion');
-    // Si es RegA, desaparece completamente
-    box.style.display = (tipo === 'B') ? 'flex' : 'none';
+    // Error A corregido: Desaparece en RegA, aparece en RegB
+    box.style.display = (tipo === 'B') ? 'block' : 'none';
 }
 
 function limpiarCampos() {
-    location.reload(); // La forma más limpia de resetear gráfico y valores
+    // Error B corregido: Reload garantiza que todo vuelve al estado inicial perfecto
+    location.reload(); 
 }
 
 function ejecutarSimulacion() {
@@ -60,8 +67,8 @@ function ejecutarSimulacion() {
 
         activos.forEach(a => {
             let valor = parseFloat(document.getElementById(a.id).value) || 0;
-            let recurrente = document.getElementById(a.rec).checked;
-            if (recurrente || i === 1) otrosAnual += (valor * 12);
+            let esRecurrente = document.getElementById(a.rec).checked;
+            if (esRecurrente || i === 1) otrosAnual += (valor * 12);
         });
 
         let aporteBolsillo = (apvMensual * 12) + otrosAnual;
@@ -82,6 +89,7 @@ function ejecutarSimulacion() {
         }
     }
 
+    // Error F Corregido: Actualizar todos los campos
     document.getElementById('res_total').innerText = `$${Math.round(capital).toLocaleString()}`;
     document.getElementById('res_retiro').innerText = `$${Math.round((capital * 0.04) / 12).toLocaleString()}`;
     document.getElementById('res_tax').innerText = `$${Math.round(totalTax).toLocaleString()}`;
@@ -91,7 +99,26 @@ function ejecutarSimulacion() {
     document.querySelector("#tax-table tbody").innerHTML = tableBody;
     document.getElementById('fecha-reporte').innerText = "Simulación: " + new Date().toLocaleDateString();
 
+    // Error E: Gestionar Alerta de Régimen
+    gestionarAlerta(sueldo, tipoAPV);
+    
+    // Error C: Renderizar gráfico
     renderChart(labels, data);
+}
+
+function gestionarAlerta(sueldo, tipo) {
+    const alerta = document.getElementById('alerta-regimen');
+    alerta.style.display = 'block';
+    const convieneB = (sueldo > 4000000);
+    
+    if ((convieneB && tipo === 'B') || (!convieneB && tipo === 'A')) {
+        alerta.className = "alerta-box alerta-success";
+        alerta.innerHTML = `✅ <strong>¡Excelente elección!</strong> El Régimen ${tipo} es el óptimo para su renta de $${sueldo.toLocaleString()}.`;
+    } else {
+        alerta.className = "alerta-box alerta-warning";
+        const sugerido = convieneB ? 'B' : 'A';
+        alerta.innerHTML = `⚠️ <strong>Sugerencia:</strong> El Régimen ${sugerido} sería más eficiente para su nivel de renta.`;
+    }
 }
 
 function renderChart(labels, data) {
@@ -102,7 +129,6 @@ function renderChart(labels, data) {
         data: {
             labels,
             datasets: [{
-                label: 'Crecimiento',
                 data: data,
                 borderColor: '#3b82f6',
                 backgroundColor: 'rgba(59, 130, 246, 0.1)',
@@ -119,22 +145,21 @@ function renderChart(labels, data) {
     });
 }
 
+// Error D Corregido: PDF con retardo de seguridad
 function exportarPDF() {
     const element = document.getElementById('pdf-content');
     const btn = document.querySelector('.btn-pdf');
     btn.style.visibility = 'hidden';
 
-    // Aumentamos el tiempo de espera a 1 segundo para asegurar el render
     setTimeout(() => {
-        const opt = {
+        html2pdf().set({
             margin: 5,
-            filename: 'Reporte_Patrimonial_v7.pdf',
+            filename: 'Reporte_InvestPro_v7.pdf',
             image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2, useCORS: true, logging: false },
+            html2canvas: { scale: 2, useCORS: true },
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        };
-        html2pdf().set(opt).from(element).save().then(() => {
+        }).from(element).save().then(() => {
             btn.style.visibility = 'visible';
         });
-    }, 1000);
-            }
+    }, 1200); // 1.2 segundos para asegurar renderizado total
+}
