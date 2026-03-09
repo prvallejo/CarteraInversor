@@ -1,132 +1,8 @@
-:root {
-    --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-    --panel-bg: rgba(255, 255, 255, 0.95);
-    --primary: #1e293b;
-    --accent: #3b82f6;
-    --accent-hover: #2563eb;
-    --success: #10b981;
-    --text-main: #334155;
-    --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-}
-
-body { 
-    background: var(--bg-gradient); 
-    color: var(--text-main); 
-    font-family: 'Inter', -apple-system, sans-serif; 
-    margin: 0; 
-    padding: 0;
-    line-height: 1.5;
-}
-
-header { 
-    background: var(--primary); 
-    color: white; 
-    padding: 30px 20px; 
-    text-align: center; 
-    border-bottom: 4px solid var(--accent);
-    box-shadow: var(--shadow);
-}
-
-header h1 { margin: 0; font-size: 24px; letter-spacing: -0.5px; }
-header h1 span { color: var(--accent); }
-header p { margin: 5px 0 0; opacity: 0.8; font-size: 14px; }
-
-.container { 
-    display: grid; 
-    grid-template-columns: 1fr; 
-    gap: 20px; 
-    padding: 20px; 
-    max-width: 1200px; 
-    margin: auto; 
-}
-
-/* Solo para pantallas grandes */
-@media (min-width: 1024px) {
-    .container { grid-template-columns: 400px 1fr; }
-}
-
-.panel { 
-    background: var(--panel-bg); 
-    padding: 24px; 
-    border-radius: 16px; 
-    box-shadow: var(--shadow);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255,255,255,0.5);
-}
-
-.input-group { 
-    background: #ffffff;
-    padding: 15px;
-    border-radius: 12px;
-    margin-bottom: 20px;
-    border: 1px solid #f1f5f9;
-}
-
-h3 { 
-    font-size: 15px; 
-    margin: 0 0 15px 0; 
-    color: var(--primary); 
-    display: flex;
-    align-items: center;
-    font-weight: 700;
-}
-
-h3::before {
-    content: '';
-    width: 4px;
-    height: 18px;
-    background: var(--accent);
-    margin-right: 10px;
-    border-radius: 2px;
-}
-
-label { 
-    font-size: 11px; 
-    font-weight: 700; 
-    color: #64748b; 
-    display: block; 
-    margin-top: 12px;
-    text-transform: uppercase;
-}
-
-input, select { 
-    width: 100%; 
-    padding: 12px; 
-    margin-top: 6px; 
-    border: 1px solid #cbd5e1; 
-    border-radius: 10px; 
-    font-size: 15px;
-    background: #f8fafc;
-    transition: all 0.2s;
-}
-
-input:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
-    outline: none;
-}
-
-.btn-main { 
-    width: 100%; 
-    padding: 16px; 
-    background: var(--accent); 
-    color: white; 
-    border: none; 
-    border-radius: 12px; 
-    font-weight: 800; 
-    cursor: pointer; 
-    font-size: 16px; 
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    box-shadow: 0 4px 14px 0 rgba(59, 130, 246, 0.39);
-}
-
-.btn-main:hover { background: var(--accent-hover); transform: translateY(-1px); }
-
+/* --- SECCIÓN DE RESULTADOS MEJORADA v4.6 --- */
 .summary-grid { 
     display: grid; 
     grid-template-columns: 1fr; 
-    gap: 12px; 
+    gap: 15px; 
     margin-top: 25px; 
 }
 
@@ -135,31 +11,60 @@ input:focus {
 }
 
 .card { 
-    padding: 20px; 
-    border-radius: 14px; 
+    padding: 25px 15px; 
+    border-radius: 16px; 
     text-align: center; 
     background: white;
     border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s;
 }
 
+/* 1. Tarjeta Patrimonio (Verde) */
 .card.main { 
     background: linear-gradient(135deg, #065f46 0%, #10b981 100%); 
     color: white;
     border: none;
 }
 
-.card.main .label { color: rgba(255,255,255,0.8); }
-.card.main .value { color: white; }
+/* 2. Tarjeta Retiro Mensual (Azul) - ¡NUEVO! */
+.card.secondary { 
+    background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); 
+    color: white;
+    border: none;
+}
 
-.card .label { font-size: 10px; font-weight: 800; text-transform: uppercase; color: #64748b; }
-.card .value { font-size: 20px; font-weight: 900; margin-top: 5px; display: block; color: var(--primary); }
+/* 3. Tarjeta Impuestos (Naranja/Rojo) - ¡NUEVO! */
+.card.alert { 
+    background: linear-gradient(135deg, #9a3412 0%, #ea580c 100%); 
+    color: white; 
+    border: none;
+}
 
-.alert-box { 
-    background: #fffbeb; 
-    border-left: 5px solid #f59e0b; 
-    padding: 15px; 
-    border-radius: 10px; 
-    font-size: 13px; 
-    margin: 15px 0;
-    color: #92400e;
-    }
+/* Estilo de las Frases (Labels) - Más grandes y claras */
+.card .label { 
+    font-size: 14px; /* Aumentado */
+    font-weight: 800; 
+    text-transform: uppercase; 
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+    display: block;
+    color: rgba(255, 255, 255, 0.9); /* Para tarjetas con color */
+}
+
+/* Ajuste para cuando la tarjeta no tiene fondo de color (por si acaso) */
+.card:not(.main):not(.secondary):not(.alert) .label {
+    color: #64748b;
+}
+
+/* Estilo de las Cifras (Values) - Impactantes */
+.card .value { 
+    font-size: 26px; /* Aumentado */
+    font-weight: 900; 
+    display: block; 
+    color: white;
+}
+
+.card:hover {
+    transform: translateY(-3px);
+}
