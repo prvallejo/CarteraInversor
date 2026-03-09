@@ -1,15 +1,22 @@
 let myChart = null;
 
+// Control de visibilidad de cajas
 function toggleBox(id, el) {
     document.getElementById(id).style.display = el.checked ? 'block' : 'none';
+}
+
+// Mostrar/Ocultar check de reinversión según Régimen
+function toggleReinversion() {
+    const tipo = document.getElementById('apv_tipo').value;
+    document.getElementById('box_reinversion').style.display = (tipo === 'B') ? 'flex' : 'none';
 }
 
 function ejecutarSimulacion() {
     const sueldo = parseFloat(document.getElementById('sueldo').value) || 0;
     const inicial = document.getElementById('check_monto').checked ? (parseFloat(document.getElementById('monto_inicial').value) || 0) : 0;
     const apv = document.getElementById('check_apv').checked ? (parseFloat(document.getElementById('apv_monto').value) || 0) : 0;
+    const reinvierteB = document.getElementById('check_reinversion').checked;
     
-    // Otros Activos
     const invCL = parseFloat(document.getElementById('inv_cl').value) || 0;
     const invUS = parseFloat(document.getElementById('inv_us').value) || 0;
     const invMM = parseFloat(document.getElementById('inv_mm').value) || 0;
@@ -28,34 +35,35 @@ function ejecutarSimulacion() {
     let data = [];
     let tableBody = "";
 
-    // Lógica de Alerta de Régimen
+    // Alerta de Régimen
     const alerta = document.getElementById('alerta-regimen');
     const convieneB = (sueldo > 4000000);
     if ((convieneB && tipoAPV === 'B') || (!convieneB && tipoAPV === 'A')) {
-        alerta.innerHTML = `<strong>✅ ¡Correcto!</strong> El Régimen ${tipoAPV} elegido es el más adecuado para su renta de $${sueldo.toLocaleString()}.`;
+        alerta.innerHTML = `<strong>✅ ¡Excelente elección!</strong> Régimen ${tipoAPV} optimizado.`;
         alerta.className = "alerta-box alerta-success";
     } else {
-        const sugerido = convieneB ? 'B' : 'A';
-        alerta.innerHTML = `<strong>⚠️ Sugerencia:</strong> Según su renta, el <strong>Régimen ${sugerido}</strong> le otorgaría mejores beneficios fiscales.`;
+        alerta.innerHTML = `<strong>⚠️ Sugerencia:</strong> Régimen ${convieneB ? 'B' : 'A'} sería más eficiente para su renta.`;
         alerta.className = "alerta-box alerta-warning";
     }
     alerta.style.display = 'block';
 
-    // Fecha en el reporte
-    document.getElementById('fecha-reporte').innerText = "Generado el: " + new Date().toLocaleDateString();
-
     for (let i = 1; i <= horizonte; i++) {
         let rentaAnual = capital * rAnual;
-        let impuesto = (rentaAnual * 0.15); // Global Complementario estimado
+        let impuesto = (rentaAnual * 0.15); 
         totalTax += impuesto;
         
         let aportesAnuales = (apv + ahorroOtros) * 12;
-        if (tipoAPV === 'A' && document.getElementById('check_apv').checked) {
-            aportesAnuales += (apv * 12 * 0.15); // Bono Régimen A
+        
+        if (document.getElementById('check_apv').checked) {
+            if (tipoAPV === 'A') {
+                aportesAnuales += (apv * 12 * 0.15); 
+            } else if (tipoAPV === 'B' && reinvierteB) {
+                // Reinversión tributaria estimada del 25% del ahorro anual
+                aportesAnuales += (apv * 12 * 0.25); 
+            }
         }
         
         capital += aportesAnuales + rentaAnual - impuesto;
-
         labels.push("Año " + i);
         data.push(Math.round(capital));
 
@@ -88,6 +96,7 @@ function renderChart(labels, data) {
             }]
         },
         options: { 
+            animation: false, // Vital para el PDF
             responsive: true, 
             maintainAspectRatio: false,
             plugins: { legend: { display: false } }
@@ -97,12 +106,18 @@ function renderChart(labels, data) {
 
 function exportarPDF() {
     const element = document.getElementById('pdf-content');
+    const btn = document.querySelector('.btn-pdf');
+    btn.style.visibility = 'hidden'; 
+
     const opt = {
-        margin: [10, 10],
-        filename: 'Reporte_Estrategico_2026.pdf',
+        margin: [10, 5],
+        filename: 'InvestPro_Reporte.pdf',
         image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2 },
+        html2canvas: { scale: 2, useCORS: true, letterRendering: true },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
-    html2pdf().from(element).set(opt).save();
-}
+
+    html2pdf().from(element).set(opt).save().then(() => {
+        btn.style.visibility = 'visible';
+    });
+                                                                     }
