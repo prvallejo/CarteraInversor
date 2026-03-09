@@ -1,11 +1,9 @@
 let myChart = null;
 
-// Control de visibilidad de secciones
 function toggleBox(id, el) {
     document.getElementById(id).style.display = el.checked ? 'block' : 'none';
 }
 
-// Control del check de reinversión (Solo visible en Régimen B)
 function toggleReinversion() {
     const tipo = document.getElementById('apv_tipo').value;
     const box = document.getElementById('box_reinversion');
@@ -18,7 +16,6 @@ function ejecutarSimulacion() {
     const apv = document.getElementById('check_apv').checked ? (parseFloat(document.getElementById('apv_monto').value) || 0) : 0;
     const reinvierteB = document.getElementById('check_reinversion') ? document.getElementById('check_reinversion').checked : false;
     
-    // Suma de otros activos
     const ahorroOtros = (parseFloat(document.getElementById('inv_cl').value) || 0) + 
                         (parseFloat(document.getElementById('inv_us').value) || 0) + 
                         (parseFloat(document.getElementById('inv_mm').value) || 0);
@@ -29,46 +26,31 @@ function ejecutarSimulacion() {
     const tipoAPV = document.getElementById('apv_tipo').value;
 
     let capital = inicial;
+    let ahorroAcumuladoPuro = inicial; // Solo lo que salió de su bolsillo
     let totalTax = 0;
     let labels = [];
     let data = [];
     let tableBody = "";
 
-    // Lógica de Alerta Inteligente
-    const alerta = document.getElementById('alerta-regimen');
-    const convieneB = (sueldo > 4000000);
-    if (alerta) {
-        if ((convieneB && tipoAPV === 'B') || (!convieneB && tipoAPV === 'A')) {
-            alerta.innerHTML = `<strong>✅ ¡Excelente elección!</strong> El Régimen ${tipoAPV} es el óptimo para su renta de $${sueldo.toLocaleString()}.`;
-            alerta.style.cssText = "display:block; background:#dbeafe; color:#1e40af; padding:15px; border-radius:10px; border-left:5px solid #3b82f6;";
-        } else {
-            const sugerido = convieneB ? 'B' : 'A';
-            alerta.innerHTML = `<strong>⚠️ Sugerencia:</strong> El Régimen ${sugerido} otorgaría mejores beneficios fiscales para su renta actual.`;
-            alerta.style.cssText = "display:block; background:#fff7ed; color:#9a3412; padding:15px; border-radius:10px; border-left:5px solid #f97316;";
-        }
-    }
-
-    document.getElementById('fecha-reporte').innerText = "Simulación: " + new Date().toLocaleDateString();
-
-    // Simulación año tras año
     for (let i = 1; i <= horizonte; i++) {
         let rentaAnual = capital * rAnual;
-        let impuesto = (rentaAnual * 0.15); // Estimación Global Complementario
+        let impuesto = (rentaAnual * 0.15); 
         totalTax += impuesto;
         
-        let aportesAnuales = (apv + ahorroOtros) * 12;
+        let aporteBolsillo = (apv + ahorroOtros) * 12;
+        ahorroAcumuladoPuro += aporteBolsillo;
+
+        let inyeccionTotal = aporteBolsillo;
         
-        // Beneficios APV
         if (document.getElementById('check_apv').checked) {
             if (tipoAPV === 'A') {
-                aportesAnuales += (apv * 12 * 0.15); // Bono Fiscal 15%
+                inyeccionTotal += (apv * 12 * 0.15); // Bono A (No sale de su bolsillo)
             } else if (tipoAPV === 'B' && reinvierteB) {
-                // Reinversión de devolución (estimado 25% según tramos altos)
-                aportesAnuales += (apv * 12 * 0.25); 
+                inyeccionTotal += (apv * 12 * 0.25); // Reinversión tributaria (Es ahorro de impuestos)
             }
         }
         
-        capital += aportesAnuales + rentaAnual - impuesto;
+        capital += inyeccionTotal + rentaAnual - impuesto;
         labels.push("Año " + i);
         data.push(Math.round(capital));
 
@@ -77,13 +59,37 @@ function ejecutarSimulacion() {
         }
     }
 
-    // Actualizar números en pantalla
+    // Actualización de KPIs
+    const gananciaTotal = capital - ahorroAcumuladoPuro;
+    const ratioEficiencia = (gananciaTotal / ahorroAcumuladoPuro) * 100;
+
     document.getElementById('res_total').innerText = `$${Math.round(capital).toLocaleString()}`;
     document.getElementById('res_retiro').innerText = `$${Math.round((capital * 0.04) / 12).toLocaleString()}`;
     document.getElementById('res_tax').innerText = `$${Math.round(totalTax).toLocaleString()}`;
+    
+    // Resultados de Eficiencia
+    document.getElementById('res_ahorro_puro').innerText = `$${Math.round(ahorroAcumuladoPuro).toLocaleString()}`;
+    document.getElementById('res_ganancia_neta').innerText = `$${Math.round(gananciaTotal).toLocaleString()}`;
+    document.getElementById('musk-ratio').innerText = `🚀 Ratio de Ganancia: +${ratioEficiencia.toFixed(1)}% sobre tu capital invertido.`;
+
     document.querySelector("#tax-table tbody").innerHTML = tableBody;
+    document.getElementById('fecha-reporte').innerText = "Simulación: " + new Date().toLocaleDateString();
 
     renderChart(labels, data);
+    
+    // Alerta inteligente
+    const alerta = document.getElementById('alerta-regimen');
+    const convieneB = (sueldo > 4000000);
+    if (alerta) {
+        alerta.style.display = 'block';
+        if ((convieneB && tipoAPV === 'B') || (!convieneB && tipoAPV === 'A')) {
+            alerta.innerHTML = `<strong>✅ Estrategia Óptima:</strong> Régimen ${tipoAPV} con reinversión maximiza el interés compuesto.`;
+            alerta.className = "alerta-box alerta-success";
+        } else {
+            alerta.innerHTML = `<strong>⚠️ Sugerencia:</strong> Cambiar a Régimen ${convieneB?'B':'A'} podría aumentar su ganancia neta.`;
+            alerta.className = "alerta-box alerta-warning";
+        }
+    }
 }
 
 function renderChart(labels, data) {
@@ -103,7 +109,7 @@ function renderChart(labels, data) {
             }]
         },
         options: { 
-            animation: false, // Desactivado para evitar errores de captura
+            animation: false, 
             responsive: true, 
             maintainAspectRatio: false,
             plugins: { legend: { display: false } }
@@ -111,33 +117,24 @@ function renderChart(labels, data) {
     });
 }
 
-// LA SOLUCIÓN DEFINITIVA PARA EL PDF VACÍO
 function exportarPDF() {
     const element = document.getElementById('pdf-content');
+    const chartBox = document.querySelector('.chart-box');
     const btn = document.querySelector('.btn-pdf');
     
-    // 1. Ocultar el botón para que no salga en el PDF
     btn.style.display = 'none';
+    chartBox.style.height = '350px'; // Gráfico Grande en PDF
 
-    // 2. Parámetros de alta fidelidad
     const opt = {
-        margin: [10, 5, 10, 5],
-        filename: 'Reporte_InvestPro_Final.pdf',
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { 
-            scale: 2, 
-            useCORS: true,
-            logging: false,
-            scrollY: 0
-        },
+        margin: [10, 5],
+        filename: 'Reporte_InvestPro_MuskRatio.pdf',
+        image: { type: 'jpeg', quality: 1 },
+        html2canvas: { scale: 2, useCORS: true },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
-    // 3. Generación directa
     html2pdf().set(opt).from(element).save().then(() => {
-        btn.style.display = 'block'; // Mostrar botón de nuevo
-    }).catch(err => {
-        console.error("Error generando PDF:", err);
+        chartBox.style.height = '250px';
         btn.style.display = 'block';
     });
-}
+        }
