@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>InvestPro v6.1 - Musk Ratio</title>
-    <link rel="stylesheet" href="style.css?v=6.1">
+    <title>InvestPro v6.3 - Gold Standard</title>
+    <link rel="stylesheet" href="style.css?v=6.3">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
     <header>
         <h1>InvestPro <span>Professional</span></h1>
-        <p>Estrategia de Optimización Patrimonial</p>
+        <p>Ingeniería Financiera Aplicada</p>
     </header>
 
     <div class="container">
@@ -34,7 +34,7 @@
                     <input type="checkbox" id="check_monto" onchange="toggleBox('box_monto', this)">
                 </div>
                 <div id="box_monto" style="display:none;">
-                    <input type="number" id="monto_inicial" placeholder="Capital actual">
+                    <input type="number" id="monto_inicial" placeholder="Monto hoy">
                 </div>
             </div>
 
@@ -73,11 +73,14 @@
                 <input type="number" id="inv_mm" placeholder="Caja / MM">
             </div>
 
-            <button type="button" onclick="ejecutarSimulacion()" class="btn-main">SIMULAR ESTRATEGIA</button>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button type="button" onclick="ejecutarSimulacion()" class="btn-main" style="flex: 2;">SIMULAR</button>
+                <button type="button" onclick="limpiarCampos()" class="btn-reset" style="flex: 1; background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 11px;">LIMPIAR</button>
+            </div>
         </section>
 
         <section class="panel results-area" id="pdf-content">
-            <h2 style="text-align:center; margin:0;">Reporte de Proyección Patrimonial</h2>
+            <h2 style="text-align:center; margin:0;">Reporte Patrimonial</h2>
             <p id="fecha-reporte" style="text-align:center; font-size:11px; color:#94a3b8;"></p>
             
             <div class="chart-box" style="height:250px; margin:20px 0;">
@@ -109,9 +112,7 @@
 
             <div class="table-wrapper">
                 <table id="tax-table">
-                    <thead>
-                        <tr><th>Año</th><th>Capital</th><th>Renta</th><th>Tax</th></tr>
-                    </thead>
+                    <thead><tr><th>Año</th><th>Capital</th><th>Renta</th><th>Tax</th></tr></thead>
                     <tbody></tbody>
                 </table>
             </div>
@@ -120,6 +121,6 @@
         </section>
     </div>
     
-    <script src="app.js?v=6.1"></script>
+    <script src="app.js?v=6.3"></script>
 </body>
 </html>
