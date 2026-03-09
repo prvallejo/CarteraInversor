@@ -11,27 +11,38 @@
 <body>
     <header>
         <h1>InvestPro <span>Professional v4.2026</span></h1>
-        <p>Optimización de Fondos y Estrategia de Retiro</p>
+        <p>Ingeniería Financiera y Optimización de Retiro</p>
     </header>
 
     <div class="container">
         <section class="panel side-controls">
             <div class="input-group">
-                <h3>1. Perfil e Ingresos</h3>
+                <h3>1. Perfil de Ingresos</h3>
                 <label>Sueldo Mensual Bruto (CLP):</label>
                 <input type="number" id="sueldo" value="3200000">
-                <label>Horizonte de Tiempo:</label>
+                <label>Años de Proyección:</label>
                 <select id="horizonte">
-                    <option value="5">5 Años</option>
+                    <option value="5" selected>5 Años</option>
                     <option value="10">10 Años</option>
-                    <option value="20" selected>20 Años</option>
+                    <option value="20">20 Años</option>
                     <option value="30">30 Años</option>
                 </select>
             </div>
 
             <div class="input-group">
                 <div class="check-header">
-                    <h3>2. Plan APV</h3>
+                    <h3>2. Inversión Inicial</h3>
+                    <input type="checkbox" id="check_monto" checked>
+                </div>
+                <div id="box_monto">
+                    <label>Monto a Invertir hoy (CLP):</label>
+                    <input type="number" id="monto_inicial" value="100000000">
+                </div>
+            </div>
+
+            <div class="input-group">
+                <div class="check-header">
+                    <h3>3. Plan APV</h3>
                     <input type="checkbox" id="check_apv" checked>
                 </div>
                 <div id="box_apv">
@@ -52,26 +63,25 @@
             </div>
 
             <div class="input-group">
-                <div class="check-header">
-                    <h3>3. Otros Activos</h3>
-                    <input type="checkbox" id="check_monto" checked>
-                </div>
-                <div id="box_monto">
-                    <label>Inversión Inicial:</label>
-                    <input type="number" id="monto_inicial" value="100000000">
-                    <label>Ahorro Mensual Extra (Opcional):</label>
-                    <input type="number" id="inv_mensual" value="0" placeholder="CLP/mes">
-                </div>
+                <h3>4. Ahorro Mensual en Activos</h3>
+                <p class="small-note">Puedes dejar en 0 o vacío si no inviertes.</p>
+                <label>Acciones Chile (DGI):</label>
+                <input type="number" id="inv_cl" placeholder="CLP/mes">
+                <label>ETFs EE.UU. (Growth):</label>
+                <input type="number" id="inv_us" placeholder="CLP/mes">
+                <label>Money Market (Caja):</label>
+                <input type="number" id="inv_mm" placeholder="CLP/mes">
             </div>
 
             <div id="recomendacion-zona"></div>
-            <button type="button" onclick="ejecutarSimulacion()" class="btn-main">CALCULAR ESTRATEGIA</button>
-            <button type="button" onclick="generarReportePRO()" class="btn-pdf" id="pdf-btn" style="display:none;">DESCARGAR INFORME FULL</button>
+            <button type="button" onclick="ejecutarSimulacion()" class="btn-main">SIMULAR ESTRATEGIA</button>
+            <button type="button" onclick="generarReportePRO()" class="btn-pdf" id="pdf-btn" style="display:none;">DESCARGAR PLAN PDF</button>
         </section>
 
         <section class="panel results-area">
             <div class="report-header">
-                <h2>Proyección Patrimonial y Libertad Financiera</h2>
+                <h2>Estrategia Patrimonial Proyectada</h2>
+                <p id="fecha-reporte"></p>
             </div>
             
             <div class="chart-container" style="height: 300px;">
@@ -80,11 +90,11 @@
 
             <div class="summary-grid">
                 <div class="card main">
-                    <span class="label">Patrimonio al Retiro</span>
+                    <span class="label">Patrimonio al Final</span>
                     <span id="res_total" class="value">$0</span>
                 </div>
                 <div class="card secondary">
-                    <span class="label">Retiro Mensual Estimado (4%)</span>
+                    <span class="label">Retiro Mensual (4%)</span>
                     <span id="res_retiro" class="value">$0</span>
                 </div>
                 <div class="card alert">
@@ -98,9 +108,9 @@
                     <thead>
                         <tr>
                             <th>Año</th>
-                            <th>Capital Total</th>
-                            <th>Renta del Año</th>
-                            <th>Impuesto (IGC)</th>
+                            <th>Capital Acumulado</th>
+                            <th>Rentabilidad Año</th>
+                            <th>Impuesto Año</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -110,4 +120,5 @@
     </div>
     <script src="app.js"></script>
 </body>
-</html>
+                                                 </html>
+                                                 
