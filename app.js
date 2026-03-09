@@ -1,49 +1,38 @@
 let myChart = null;
 
-// Función para Resetear Todo
-function limpiarCampos() {
-    // 1. Limpiar todos los inputs numéricos y select
-    const inputs = document.querySelectorAll('input[type="number"]');
-    inputs.forEach(input => input.value = "");
-    
-    // 2. Resetear Checkboxes
-    document.getElementById('check_monto').checked = false;
-    document.getElementById('check_apv').checked = true;
-    toggleBox('box_monto', document.getElementById('check_monto'));
-    
-    // 3. Volver valores visuales a $0
-    const values = ['res_total', 'res_retiro', 'res_tax', 'res_ahorro_puro', 'res_ganancia_neta'];
-    values.forEach(id => {
-        const el = document.getElementById(id);
-        if(el) el.innerText = "$0";
-    });
-    
-    document.getElementById('musk-ratio').innerText = "";
-    document.getElementById('alerta-regimen').style.display = 'none';
-    document.querySelector("#tax-table tbody").innerHTML = "";
+function toggleBox(id, el) {
+    document.getElementById(id).style.display = el.checked ? 'block' : 'none';
+}
 
-    // 4. Destruir Gráfico
-    if (myChart) {
-        myChart.destroy();
-        myChart = null;
-    }
-    
-    console.log("Campos reseteados con éxito.");
+function toggleReinversion() {
+    const tipo = document.getElementById('apv_tipo').value;
+    const box = document.getElementById('box_reinversion');
+    if(box) box.style.visibility = (tipo === 'B') ? 'visible' : 'hidden';
+}
+
+function limpiarCampos() {
+    document.querySelectorAll('input[type="number"]').forEach(i => i.value = "");
+    document.querySelectorAll('input[type="checkbox"]').forEach(c => c.checked = false);
+    document.getElementById('check_apv').checked = true;
+    document.getElementById('res_total').innerText = "$0";
+    document.getElementById('res_ahorro_puro').innerText = "$0";
+    document.getElementById('res_ganancia_neta').innerText = "$0";
+    document.getElementById('musk-ratio').innerText = "";
+    if (myChart) { myChart.destroy(); myChart = null; }
+    toggleReinversion();
 }
 
 function ejecutarSimulacion() {
-    // [Mantenemos la lógica de captura de datos igual a la v6.2]
     const sueldo = parseFloat(document.getElementById('sueldo').value) || 0;
     const inicial = document.getElementById('check_monto').checked ? (parseFloat(document.getElementById('monto_inicial').value) || 0) : 0;
     const apvMensual = document.getElementById('check_apv').checked ? (parseFloat(document.getElementById('apv_monto').value) || 0) : 0;
-    const reinvierteB = document.getElementById('check_reinversion') ? document.getElementById('check_reinversion').checked : false;
-    const otros = (parseFloat(document.getElementById('inv_cl').value) || 0) + (parseFloat(document.getElementById('inv_us').value) || 0) + (parseFloat(document.getElementById('inv_mm').value) || 0);
+    const reinvierteB = document.getElementById('check_reinversion').checked;
     const horizonte = parseInt(document.getElementById('horizonte').value);
     const rAnual = { 'A': 0.07, 'C': 0.05, 'E': 0.03 }[document.getElementById('apv_fondo').value] || 0.05;
     const tipoAPV = document.getElementById('apv_tipo').value;
 
     let capital = inicial;
-    let acumuladoBolsillo = inicial; 
+    let acumuladoBolsillo = inicial;
     let totalTax = 0;
     let labels = [];
     let data = [];
@@ -51,15 +40,36 @@ function ejecutarSimulacion() {
 
     for (let i = 1; i <= horizonte; i++) {
         let rentaAnual = capital * rAnual;
-        let impuesto = (rentaAnual * 0.15); 
+        let impuesto = (rentaAnual * 0.15);
         totalTax += impuesto;
-        let aporteBolsilloAnual = (apvMensual + otros) * 12;
-        acumuladoBolsillo += aporteBolsilloAnual;
-        let inyeccionTotal = aporteBolsilloAnual;
+
+        // Cálculo de Otros Activos con Recurrencia
+        let otrosAnual = 0;
+        const activos = [
+            { id: 'inv_cl', rec: 'rec_cl' },
+            { id: 'inv_us', rec: 'rec_us' },
+            { id: 'inv_mm', rec: 'rec_mm' }
+        ];
+
+        activos.forEach(a => {
+            let valor = parseFloat(document.getElementById(a.id).value) || 0;
+            let esRecurrente = document.getElementById(a.rec).checked;
+            if (esRecurrente) {
+                otrosAnual += (valor * 12);
+            } else if (i === 1) { // Solo se suma el primer año
+                otrosAnual += (valor * 12);
+            }
+        });
+
+        let aporteBolsillo = (apvMensual * 12) + otrosAnual;
+        acumuladoBolsillo += aporteBolsillo;
+
+        let inyeccionTotal = aporteBolsillo;
         if (document.getElementById('check_apv').checked) {
             if (tipoAPV === 'A') inyeccionTotal += (apvMensual * 12 * 0.15);
             if (tipoAPV === 'B' && reinvierteB) inyeccionTotal += (apvMensual * 12 * 0.25);
         }
+
         capital += inyeccionTotal + rentaAnual - impuesto;
         labels.push("Año " + i);
         data.push(Math.round(capital));
@@ -68,47 +78,41 @@ function ejecutarSimulacion() {
         }
     }
 
-    // Actualización Visual
-    const plusvalia = capital - acumuladoBolsillo;
-    const ratio = (acumuladoBolsillo > 0) ? (plusvalia / acumuladoBolsillo) * 100 : 0;
-
+    // Update UI
     document.getElementById('res_total').innerText = `$${Math.round(capital).toLocaleString()}`;
-    document.getElementById('res_retiro').innerText = `$${Math.round((capital * 0.04) / 12).toLocaleString()}`;
-    document.getElementById('res_tax').innerText = `$${Math.round(totalTax).toLocaleString()}`;
     document.getElementById('res_ahorro_puro').innerText = `$${Math.round(acumuladoBolsillo).toLocaleString()}`;
-    document.getElementById('res_ganancia_neta').innerText = `$${Math.round(plusvalia).toLocaleString()}`;
-    document.getElementById('musk-ratio').innerText = `🚀 Ratio de Ganancia: +${ratio.toFixed(1)}% sobre capital propio.`;
-
+    document.getElementById('res_ganancia_neta').innerText = `$${Math.round(capital - acumuladoBolsillo).toLocaleString()}`;
+    document.getElementById('musk-ratio').innerText = `🚀 Ratio: +${((capital - acumuladoBolsillo)/acumuladoBolsillo*100).toFixed(1)}%`;
     document.querySelector("#tax-table tbody").innerHTML = tableBody;
+
     renderChart(labels, data);
 }
 
-// FIX DE EXPORTACIÓN CON RE-RENDER
-function exportarPDF() {
-    const element = document.getElementById('pdf-content');
-    const btnPdf = document.querySelector('.btn-pdf');
-    const btnReset = document.querySelector('.btn-reset');
-    
-    // Ocultar botones para que no salgan en el PDF
-    if(btnPdf) btnPdf.style.display = 'none';
-    if(btnReset) btnReset.style.display = 'none';
-
-    // Pequeño delay para asegurar que el DOM está actualizado con los valores de Musk
-    setTimeout(() => {
-        const opt = {
-            margin: [10, 5],
-            filename: 'Reporte_InvestPro_Elite.pdf',
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 3, useCORS: true, letterRendering: true },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        };
-
-        html2pdf().set(opt).from(element).save().then(() => {
-            if(btnPdf) btnPdf.style.display = 'block';
-            if(btnReset) btnReset.style.display = 'block';
-        });
-    }, 800); 
+function renderChart(labels, data) {
+    const ctx = document.getElementById('projectionChart').getContext('2d');
+    if (myChart) myChart.destroy();
+    myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels,
+            datasets: [{ data: data, borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', fill: true }]
+        },
+        options: { animation: false, responsive: true, maintainAspectRatio: false }
+    });
 }
 
-// [Funciones toggle y renderChart se mantienen iguales]
-        
+function exportarPDF() {
+    const element = document.getElementById('pdf-content');
+    const btn = document.querySelector('.btn-pdf');
+    btn.style.display = 'none';
+    
+    // El truco para que no salga vacío: Forzar un render antes de capturar
+    setTimeout(() => {
+        html2pdf().set({
+            margin: 10,
+            filename: 'Reporte_InvestPro_v7.pdf',
+            html2canvas: { scale: 2, useCORS: true },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        }).from(element).save().then(() => btn.style.display = 'block');
+    }, 500);
+}
