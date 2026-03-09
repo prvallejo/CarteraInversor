@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>InvestPro v7.1 - Final Fix</title>
-    <link rel="stylesheet" href="style.css?v=7.1">
+    <title>InvestPro v7.2 - Final</title>
+    <link rel="stylesheet" href="style.css?v=7.2">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
-        /* Corrección rápida para que no se monten los textos */
-        .eficiencia-grid { display: flex; justify-content: space-around; gap: 10px; margin-top: 10px; }
-        .eficiencia-col { flex: 1; text-align: center; }
-        .label-xs { display: block; font-size: 10px; color: #64748b; margin-bottom: 4px; }
-        .val-sm { font-size: 16px; font-weight: bold; display: block; }
-        .recurrente-label { font-size: 11px; font-weight: bold; margin-left: 5px; }
+        .recurrente-label { font-size: 11px; font-weight: bold; margin-left: 8px; color: #64748b; min-width: 90px; }
+        .activo-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; gap: 10px; }
+        .activo-row input[type="number"] { flex: 1; }
+        .check-container { display: flex; align-items: center; background: #f8fafc; padding: 5px 10px; border-radius: 8px; border: 1px solid #e2e8f0; }
+        .eficiencia-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+        .eficiencia-col { text-align: center; padding: 10px; background: #fff; border-radius: 8px; }
     </style>
 </head>
 <body>
@@ -26,7 +26,7 @@
         <section class="panel side-controls">
             <div class="input-group">
                 <h3>1. Perfil e Horizonte</h3>
-                <label>Sueldo Bruto:</label>
+                <label>Sueldo Bruto Mensual:</label>
                 <input type="number" id="sueldo" value="5000000">
                 <label>Años:</label>
                 <select id="horizonte">
@@ -59,9 +59,11 @@
                         <option value="A">Régimen A (Bono 15%)</option>
                         <option value="B" selected>Régimen B (Ahorro Tax)</option>
                     </select>
-                    <div id="box_reinversion" style="display: flex; align-items: center; margin-top: 10px; background: #eff6ff; padding: 10px; border-radius: 8px;">
-                        <input type="checkbox" id="check_reinversion" checked onchange="updateCheckLabel(this)">
-                        <label class="recurrente-label" id="label_reinv">SI (Reinvierte)</label>
+                    <div id="box_reinversion" style="margin-top: 10px; background: #eff6ff; padding: 12px; border-radius: 8px; border: 1px dashed #3b82f6;">
+                        <div style="display:flex; align-items:center;">
+                            <input type="checkbox" id="check_reinversion" checked onchange="updateCheckLabel(this)">
+                            <label style="font-size:11px; margin-left:10px; font-weight:bold; color:#1e40af;" id="label_reinv">SI (¿Reinvierte lo ahorrado en impuesto?)</label>
+                        </div>
                     </div>
                     <label style="margin-top:10px;">Fondo:</label>
                     <select id="apv_fondo">
@@ -74,23 +76,23 @@
 
             <div class="input-group">
                 <h3>4. Otros Activos</h3>
-                <div class="activo-row" style="margin-bottom:10px;">
+                <div class="activo-row">
                     <input type="number" id="inv_cl" placeholder="Acciones CL">
-                    <div style="display:flex; align-items:center;">
+                    <div class="check-container">
                         <input type="checkbox" id="rec_cl" checked onchange="updateCheckLabel(this)">
                         <span class="recurrente-label" id="label_rec_cl">SI (Recurrente)</span>
                     </div>
                 </div>
-                <div class="activo-row" style="margin-bottom:10px;">
+                <div class="activo-row">
                     <input type="number" id="inv_us" placeholder="ETFs USA">
-                    <div style="display:flex; align-items:center;">
+                    <div class="check-container">
                         <input type="checkbox" id="rec_us" checked onchange="updateCheckLabel(this)">
                         <span class="recurrente-label" id="label_rec_us">SI (Recurrente)</span>
                     </div>
                 </div>
                 <div class="activo-row">
                     <input type="number" id="inv_mm" placeholder="DAP / Cash">
-                    <div style="display:flex; align-items:center;">
+                    <div class="check-container">
                         <input type="checkbox" id="rec_mm" checked onchange="updateCheckLabel(this)">
                         <span class="recurrente-label" id="label_rec_mm">SI (Recurrente)</span>
                     </div>
@@ -99,34 +101,34 @@
 
             <div style="display: flex; gap: 10px; margin-top: 20px;">
                 <button type="button" onclick="ejecutarSimulacion()" class="btn-main" style="flex:2;">SIMULAR</button>
-                <button type="button" onclick="limpiarCampos()" class="btn-reset" style="flex:1;">LIMPIAR</button>
+                <button type="button" onclick="limpiarCampos()" class="btn-reset" style="flex:1; background:#f1f5f9; border:1px solid #cbd5e1; border-radius:10px; cursor:pointer;">LIMPIAR</button>
             </div>
         </section>
 
         <section class="panel results-area" id="pdf-content">
-            <h2 style="text-align:center;">Reporte de Estrategia</h2>
+            <h2 style="text-align:center; margin:0;">Reporte de Estrategia Patrimonial</h2>
             <p id="fecha-reporte" style="text-align:center; font-size:11px; color:#94a3b8;"></p>
             
-            <div class="chart-box" style="height:280px; width:100%; margin:20px 0;">
+            <div style="height:280px; width:100%; margin:20px 0; background:#fff; border-radius:12px; padding:10px; border:1px solid #f1f5f9;">
                 <canvas id="projectionChart"></canvas>
             </div>
 
             <div class="summary-grid">
                 <div class="card card-green"><span class="label">Patrimonio Final</span><span id="res_total" class="value">$0</span></div>
-                <div class="card card-blue"><span class="label">Retiro 4%</span><span id="res_retiro" class="value">$0</span></div>
-                <div class="card card-orange"><span class="label">Tax Total</span><span id="res_tax" class="value">$0</span></div>
+                <div class="card card-blue"><span class="label">Retiro 4% (Mensual)</span><span id="res_retiro" class="value">$0</span></div>
+                <div class="card card-orange"><span class="label">Impuestos Totales</span><span id="res_tax" class="value">$0</span></div>
             </div>
 
             <div style="margin:20px 0; padding:15px; background:#f8fafc; border-radius:12px; border:1px solid #e2e8f0;">
-                <h4 style="text-align:center; font-size:12px; margin-bottom:10px; color:#1e293b;">ANÁLISIS DE EFICIENCIA</h4>
+                <h4 style="text-align:center; font-size:12px; margin:0 0 10px 0; color:#1e293b;">ANÁLISIS DE EFICIENCIA</h4>
                 <div class="eficiencia-grid">
                     <div class="eficiencia-col">
-                        <span class="label-xs">INVERSIÓN BOLSILLO</span>
-                        <span id="res_ahorro_puro" class="val-sm">$0</span>
+                        <span style="font-size:9px; color:#64748b; display:block;">INVERSIÓN BOLSILLO</span>
+                        <span id="res_ahorro_puro" style="font-size:16px; font-weight:bold; color:#1e293b;">$0</span>
                     </div>
-                    <div class="eficiencia-col" style="border-left: 1px solid #e2e8f0;">
-                        <span class="label-xs">PLUSVALÍA NETA</span>
-                        <span id="res_ganancia_neta" class="val-sm" style="color:#10b981;">$0</span>
+                    <div class="eficiencia-col" style="border-left:1px solid #e2e8f0;">
+                        <span style="font-size:9px; color:#64748b; display:block;">PLUSVALÍA NETA</span>
+                        <span id="res_ganancia_neta" style="font-size:16px; font-weight:bold; color:#10b981;">$0</span>
                     </div>
                 </div>
                 <p id="musk-ratio" style="text-align:center; font-size:12px; margin-top:15px; font-weight:bold; color:#3b82f6;"></p>
@@ -141,9 +143,9 @@
                 </table>
             </div>
 
-            <button type="button" onclick="exportarPDF()" class="btn-pdf">DESCARGAR PDF</button>
+            <button type="button" onclick="exportarPDF()" class="btn-pdf">DESCARGAR REPORTE PDF</button>
         </section>
     </div>
-    <script src="app.js?v=7.1"></script>
+    <script src="app.js?v=7.2"></script>
 </body>
 </html>
