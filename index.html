@@ -3,24 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>InvestPro Planner v3.2026</title>
+    <title>InvestPro Ultra v4.2026</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
     <header>
-        <h1>InvestPro <span>Global Planner v3.2026</span></h1>
-        <p>Ingeniería Financiera y Optimización Tributaria Chile-EE.UU.</p>
+        <h1>InvestPro <span>Professional v4.2026</span></h1>
+        <p>Optimización de Fondos y Estrategia de Retiro</p>
     </header>
 
     <div class="container">
         <section class="panel side-controls">
             <div class="input-group">
-                <h3>1. Perfil de Ingresos</h3>
+                <h3>1. Perfil e Ingresos</h3>
                 <label>Sueldo Mensual Bruto (CLP):</label>
-                <input type="number" id="sueldo" value="3500000" placeholder="Ej: 2500000">
-                <label>Años de Proyección:</label>
+                <input type="number" id="sueldo" value="3200000">
+                <label>Horizonte de Tiempo:</label>
                 <select id="horizonte">
                     <option value="5">5 Años</option>
                     <option value="10">10 Años</option>
@@ -31,89 +31,83 @@
 
             <div class="input-group">
                 <div class="check-header">
-                    <h3>2. Inversión Inicial</h3>
-                    <input type="checkbox" id="check_monto" checked>
+                    <h3>2. Plan APV</h3>
+                    <input type="checkbox" id="check_apv" checked>
                 </div>
-                <div id="box_monto">
-                    <label>Monto a Invertir hoy (CLP):</label>
-                    <input type="number" id="monto_inicial" value="10000000" placeholder="Dejar vacío o 0 si no aplica">
-                </div>
-            </div>
-
-            <div class="input-group">
-                <div class="check-header">
-                    <h3>3. Plan APV</h3>
-                    <input type="checkbox" id="check_apv">
-                </div>
-                <div id="box_apv" style="display:none;">
+                <div id="box_apv">
                     <label>Monto Mensual APV:</label>
-                    <input type="number" id="apv_monto" value="0">
-                    <label>Régimen Seleccionado:</label>
+                    <input type="number" id="apv_monto" value="250000">
+                    <label>Régimen:</label>
                     <select id="apv_tipo">
-                        <option value="A">Régimen A (Bono 15% Fiscal)</option>
-                        <option value="B">Régimen B (Rebaja de Impuestos)</option>
+                        <option value="A">Régimen A (Bono 15%)</option>
+                        <option value="B" selected>Régimen B (Ahorro Tax)</option>
+                    </select>
+                    <label>Perfil de Riesgo (Fondo):</label>
+                    <select id="apv_fondo">
+                        <option value="A">Fondo A (Agresivo - 7% anual)</option>
+                        <option value="C" selected>Fondo C (Moderado - 5% anual)</option>
+                        <option value="E">Fondo E (Conservador - 3% anual)</option>
                     </select>
                 </div>
             </div>
 
             <div class="input-group">
-                <h3>4. Ahorro Mensual en Activos</h3>
-                <p class="small-note">Si NO inviertes en algún instrumento, puedes dejar el campo en 0 o vacío.</p>
-                
-                <label>Acciones Chile (DGI):</label>
-                <input type="number" id="inv_cl" value="0" placeholder="CLP/mes">
-                
-                <label>ETFs EE.UU. (VTI/SCHD):</label>
-                <input type="number" id="inv_us" value="0" placeholder="CLP/mes">
-                
-                <label>Money Market (Caja):</label>
-                <input type="number" id="inv_mm" value="0" placeholder="CLP/mes">
+                <div class="check-header">
+                    <h3>3. Otros Activos</h3>
+                    <input type="checkbox" id="check_monto" checked>
+                </div>
+                <div id="box_monto">
+                    <label>Inversión Inicial:</label>
+                    <input type="number" id="monto_inicial" value="100000000">
+                    <label>Ahorro Mensual Extra (Opcional):</label>
+                    <input type="number" id="inv_mensual" value="0" placeholder="CLP/mes">
+                </div>
             </div>
 
             <div id="recomendacion-zona"></div>
-            <button type="button" onclick="ejecutarSimulacion()" class="btn-main">GENERAR PROYECCIÓN</button>
-            <button type="button" onclick="generarReportePRO()" class="btn-pdf" id="pdf-btn" style="display:none;">DESCARGAR INFORME PDF</button>
+            <button type="button" onclick="ejecutarSimulacion()" class="btn-main">CALCULAR ESTRATEGIA</button>
+            <button type="button" onclick="generarReportePRO()" class="btn-pdf" id="pdf-btn" style="display:none;">DESCARGAR INFORME FULL</button>
         </section>
 
         <section class="panel results-area">
-            <div id="reporte-contenido">
-                <div class="report-header">
-                    <h2>Estrategia Patrimonial Proyectada</h2>
-                    <p id="fecha-reporte"></p>
-                </div>
-                
-                <div class="chart-container">
-                    <canvas id="projectionChart"></canvas>
-                </div>
+            <div class="report-header">
+                <h2>Proyección Patrimonial y Libertad Financiera</h2>
+            </div>
+            
+            <div class="chart-container" style="height: 300px;">
+                <canvas id="projectionChart"></canvas>
+            </div>
 
-                <div class="summary-cards">
-                    <div class="card highlight">
-                        <span class="label">Patrimonio Estimado</span>
-                        <span id="res_total" class="value">$0</span>
-                    </div>
-                    <div class="card">
-                        <span class="label">Impuestos Totales</span>
-                        <span id="res_tax" class="value">$0</span>
-                    </div>
+            <div class="summary-grid">
+                <div class="card main">
+                    <span class="label">Patrimonio al Retiro</span>
+                    <span id="res_total" class="value">$0</span>
                 </div>
+                <div class="card secondary">
+                    <span class="label">Retiro Mensual Estimado (4%)</span>
+                    <span id="res_retiro" class="value">$0</span>
+                </div>
+                <div class="card alert">
+                    <span class="label">Impuestos Totales</span>
+                    <span id="res_tax" class="value">$0</span>
+                </div>
+            </div>
 
-                <div class="table-wrapper">
-                    <table id="tax-table">
-                        <thead>
-                            <tr>
-                                <th>Año</th>
-                                <th>Capital Acumulado</th>
-                                <th>Rentabilidad Bruta</th>
-                                <th>Impuestos Año</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
+            <div class="table-wrapper">
+                <table id="tax-table">
+                    <thead>
+                        <tr>
+                            <th>Año</th>
+                            <th>Capital Total</th>
+                            <th>Renta del Año</th>
+                            <th>Impuesto (IGC)</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
             </div>
         </section>
     </div>
     <script src="app.js"></script>
 </body>
-                        </html>
-                        
+</html>
