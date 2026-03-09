@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>InvestPro v5.1 - Final</title>
-    <link rel="stylesheet" href="style.css?v=5.1">
+    <title>InvestPro v5.3 - Professional</title>
+    <link rel="stylesheet" href="style.css?v=5.3">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
@@ -51,20 +51,31 @@
                         <option value="A">Régimen A (Bono 15%)</option>
                         <option value="B" selected>Régimen B (Rebaja Impuestos)</option>
                     </select>
-                    <label>Fondo de Inversión:</label>
+                    <label>Fondo:</label>
                     <select id="apv_fondo">
-                        <option value="A">Fondo A (Agresivo - 7%)</option>
-                        <option value="C" selected>Fondo C (Moderado - 5%)</option>
-                        <option value="E">Fondo E (Conservador - 3%)</option>
+                        <option value="A">Fondo A (7%)</option>
+                        <option value="C" selected>Fondo C (5%)</option>
+                        <option value="E">Fondo E (3%)</option>
                     </select>
                 </div>
+            </div>
+
+            <div class="input-group">
+                <h3>4. Ahorro Mensual en Activos</h3>
+                <label>Acciones Chile (DGI):</label>
+                <input type="number" id="inv_cl" placeholder="0">
+                <label>ETFs EE.UU. (Growth):</label>
+                <input type="number" id="inv_us" placeholder="0">
+                <label>Money Market (Caja):</label>
+                <input type="number" id="inv_mm" placeholder="0">
             </div>
 
             <button type="button" onclick="ejecutarSimulacion()" class="btn-main">SIMULAR ESTRATEGIA</button>
         </section>
 
         <section class="panel results-area" id="pdf-content">
-            <h2 style="text-align:center; color:#1e293b;">Reporte Patrimonial</h2>
+            <h2 style="text-align:center; color:#1e293b; margin-bottom:5px;">Reporte de Proyección Patrimonial</h2>
+            <p id="fecha-reporte" style="text-align:center; font-size:12px; color:#64748b; margin-bottom:20px;"></p>
             
             <div class="chart-box">
                 <canvas id="projectionChart"></canvas>
@@ -101,10 +112,14 @@
                 </table>
             </div>
 
+            <div class="legal-footer" style="margin-top:20px; padding-top:10px; border-top:1px solid #eee; font-size:10px; color:#94a3b8; text-align:center;">
+                Simulación considera norma vigente chilena tributación e impuesto 2026.
+            </div>
+
             <button type="button" onclick="exportarPDF()" class="btn-pdf">DESCARGAR REPORTE PDF</button>
         </section>
     </div>
-    <script src="app.js?v=5.1"></script>
+    <script src="app.js?v=5.3"></script>
 </body>
-                            </html>
-                            
+    </html>
+    
