@@ -1,4 +1,3 @@
-// Manejo de Interfaz Dinámica
 document.getElementById('check_apv').addEventListener('change', e => {
     document.getElementById('box_apv').style.display = e.target.checked ? 'block' : 'none';
 });
@@ -11,57 +10,57 @@ let myChart = null;
 function ejecutarSimulacion() {
     const getV = (id) => parseFloat(document.getElementById(id).value) || 0;
     
-    // 1. Inputs Base
+    // 1. Perfil
     const sueldoBruto = getV('sueldo');
     const horizonte = parseInt(document.getElementById('horizonte').value);
-    const inicial = document.getElementById('check_monto').checked ? getV('monto_inicial') : 0;
-    const extraMensual = document.getElementById('check_monto').checked ? getV('inv_mensual') : 0;
+    
+    // 2. Inversión Inicial
+    let capital = document.getElementById('check_monto').checked ? getV('monto_inicial') : 0;
 
-    // 2. APV Config
+    // 3. APV
     const usaAPV = document.getElementById('check_apv').checked;
     const apvMonto = usaAPV ? getV('apv_monto') : 0;
     const apvTipo = document.getElementById('apv_tipo').value;
     const fondo = document.getElementById('apv_fondo').value;
 
-    // Rentabilidades Reales (Netas de Inflación)
-    const RENTAS = { 'A': 0.07, 'C': 0.05, 'E': 0.03 };
-    const rentAPV = RENTAS[fondo];
-    const rentOtros = 0.045; // Rentabilidad moderada para otros activos
+    // 4. Activos Mensuales
+    const invCL = getV('inv_cl');
+    const invUS = getV('inv_us');
+    const invMM = getV('inv_mm');
+    const ahorroTotalActivos = invCL + invUS + invMM;
 
-    // 3. Lógica Tributaria (Impuesto Segunda Categoría / IGC)
+    // Rentabilidades
+    const RENTAS_APV = { 'A': 0.07, 'C': 0.05, 'E': 0.03 };
+    const rentAPV = RENTAS_APV[fondo];
+    
+    // Calculamos rentabilidad ponderada para otros activos
+    const rentOtros = (invCL * 0.09 + invUS * 0.11 + invMM * 0.045 + (ahorroTotalActivos === 0 ? capital * 0.045 : 0)) / (ahorroTotalActivos + (ahorroTotalActivos === 0 ? capital : 0) || 1);
+
+    // Impuestos
     const rentaLiquida = (sueldoBruto * 0.8) * 12;
     const tasaIGC = calcularTasaIGC(rentaLiquida);
 
-    // Alerta Inteligente
     const alerta = document.getElementById('recomendacion-zona');
     alerta.innerHTML = "";
     if (usaAPV && apvMonto > 0) {
         if (tasaIGC >= 0.08 && apvTipo === 'A') {
-            alerta.innerHTML = `<div class="alert-box">🚀 <b>Estrategia B recomendada:</b> Tu tasa de impuesto (${tasaIGC*100}%) hace que el beneficio fiscal del Régimen B sea superior al bono estatal del A.</div>`;
+            alerta.innerHTML = `<div class="alert-box">💡 <b>Optimización:</b> Con tu sueldo, el <b>Régimen B</b> te ahorra un ${Math.round(tasaIGC*100)}% en impuestos, superando al bono del A.</div>`;
+        } else if (tasaIGC < 0.04 && apvTipo === 'B') {
+            alerta.innerHTML = `<div class="alert-box" style="border-color:#10b981; color:#065f46; background:#ecfdf5">✅ <b>Sugerencia:</b> El <b>Régimen A</b> es mejor para tu tramo actual.</div>`;
         }
     }
 
-    // 4. Ciclo de Cálculo
-    let capital = inicial;
-    let totalTax = 0;
     let labels = [], data = [];
     let tablaHTML = "";
+    let totalTax = 0;
 
     for (let i = 1; i <= horizonte; i++) {
-        // Rentabilidad del capital existente
         let rentaAño = (capital * rentOtros);
-        
-        // Impuesto sobre rentabilidad (estimado 40% tributable)
-        let taxAnual = (rentaAño * 0.4 * tasaIGC);
+        let taxAnual = (rentaAño * 0.45 * tasaIGC) + (invUS > 0 ? capital * 0.015 : 0); // Estimación simplificada tax
         totalTax += taxAnual;
 
-        // Nuevos flujos: Ahorro Extra + APV
-        let ahorroAño = (extraMensual * 12) + (apvMonto * 12);
-        
-        // Rentabilidad específica del APV (aplicada al flujo del año)
-        let rentaAPVCompuesto = (apvMonto * 12) * (rentAPV / 2); // Simplificación lineal primer año
-
-        capital += rentaAño + ahorroAño + rentaAPVCompuesto - taxAnual;
+        // Inversión año: Activos + APV
+        capital += (ahorroTotalActivos * 12) + (apvMonto * 12) + rentaAño - taxAnual;
 
         // Bono APV A
         if (usaAPV && apvTipo === 'A' && apvMonto > 0) {
@@ -71,18 +70,18 @@ function ejecutarSimulacion() {
         labels.push("Año " + i);
         data.push(Math.round(capital));
         
-        if (i % 5 === 0 || i === horizonte) {
+        if (i <= 5 || i % 5 === 0 || i === horizonte) {
             tablaHTML += `<tr><td>${i}</td><td>$${Math.round(capital).toLocaleString('es-CL')}</td><td>$${Math.round(rentaAño).toLocaleString('es-CL')}</td><td>$${Math.round(taxAnual).toLocaleString('es-CL')}</td></tr>`;
         }
     }
 
-    // 5. Resultados de Libertad Financiera
-    const retiroSeguro = (capital * 0.04) / 12; // Regla del 4%
+    const retiroSeguro = (capital * 0.04) / 12;
 
     document.querySelector("#tax-table tbody").innerHTML = tablaHTML;
     document.getElementById('res_total').innerText = `$${Math.round(capital).toLocaleString('es-CL')}`;
     document.getElementById('res_tax').innerText = `$${Math.round(totalTax).toLocaleString('es-CL')}`;
     document.getElementById('res_retiro').innerText = `$${Math.round(retiroSeguro).toLocaleString('es-CL')}`;
+    document.getElementById('fecha-reporte').innerText = `Proyección al ${new Date().toLocaleDateString()}`;
     document.getElementById('pdf-btn').style.display = "block";
     
     renderChart(labels, data);
@@ -102,7 +101,7 @@ function renderChart(labels, data) {
     if (myChart) myChart.destroy();
     myChart = new Chart(ctx, {
         type: 'line',
-        data: { labels, datasets: [{ label: 'Capital CLP', data, borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', fill: true, tension: 0.4 }] },
-        options: { responsive: true, maintainAspectRatio: false }
+        data: { labels, datasets: [{ label: 'Patrimonio Total', data, borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.05)', fill: true, tension: 0.4 }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
     });
-        }
+                                                                                     }
