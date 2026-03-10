@@ -20,7 +20,6 @@
         label { display: block; font-size: 11px; font-weight: bold; margin: 6px 0 2px; }
         input, select { width: 100%; padding: 7px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 13px; }
         
-        /* Ajuste Punto 4 y Checks */
         .activo-row { display: grid; grid-template-columns: 1fr 100px; gap: 8px; margin-bottom: 6px; align-items: center; }
         .small-input { padding: 5px; font-size: 12px; }
         .check-pill { display: flex; align-items: center; gap: 4px; background: #f1f5f9; padding: 4px 6px; border-radius: 6px; border: 1px solid #e2e8f0; }
@@ -29,7 +28,6 @@
         .btn-main { background: var(--accent); color: white; border: none; padding: 10px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; }
         .btn-reset { background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; padding: 10px; border-radius: 8px; cursor: pointer; }
         
-        /* Reporte y Gráfico */
         .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 12px 0; }
         .card { padding: 10px; border-radius: 10px; text-align: center; color: white; }
         .card-green { background: var(--success); }
@@ -169,8 +167,15 @@ function upd(el) {
 }
 
 function toggleInit(el) { document.getElementById('monto_inicial').style.display = el.checked ? 'block' : 'none'; }
-function toggleAPV(el) { document.getElementById('ui_apv').style.opacity = el.checked ? '1' : '0.3'; document.getElementById('ui_apv').style.pointerEvents = el.checked ? 'auto' : 'none'; }
-function checkRegimen() { document.getElementById('box_reinv').style.display = document.getElementById('apv_tipo').value === 'B' ? 'flex' : 'none'; }
+
+// CORRECCIÓN: Oculta visualmente las opciones de APV
+function toggleAPV(el) { 
+    document.getElementById('ui_apv').style.display = el.checked ? 'block' : 'none'; 
+}
+
+function checkRegimen() { 
+    document.getElementById('box_reinv').style.display = document.getElementById('apv_tipo').value === 'B' ? 'flex' : 'none'; 
+}
 
 function calcular() {
     const s = parseFloat(document.getElementById('sueldo').value) || 0;
@@ -192,12 +197,16 @@ function calcular() {
         let oAnual = 0;
         ['cl','us','mm'].forEach(k => {
             let v = parseFloat(document.getElementById('inv_'+k).value) || 0;
-            if (document.getElementById('rec_'+k).checked || i === 1) { oAnual += (v * 12); bolsillo += (v * 12); }
+            if (document.getElementById('rec_'+k).checked || i === 1) { 
+                oAnual += (v * 12); 
+                bolsillo += (v * 12); 
+            }
         });
 
-        // APV
-        let inyAPV = apvM * 12;
+        // APV CORREGIDO: Se define inyAPV fuera del bloque para evitar errores de cálculo
+        let inyAPV = 0;
         if(apvOn) {
+            inyAPV = apvM * 12;
             bolsillo += inyAPV;
             if(t==='A') inyAPV += (inyAPV * 0.15);
             if(t==='B' && re) inyAPV += (inyAPV * 0.25);
@@ -212,13 +221,17 @@ function calcular() {
         }
     }
 
-    // Renderizar
+    // Renderizar Resultados
     document.getElementById('res_total').innerText = `$${Math.round(cap).toLocaleString()}`;
     document.getElementById('res_retiro').innerText = `$${Math.round((cap*0.04)/12).toLocaleString()}`;
     document.getElementById('res_tax').innerText = `$${Math.round(totalTax).toLocaleString()}`;
     document.getElementById('ef_inv').innerText = `$${Math.round(bolsillo).toLocaleString()}`;
     document.getElementById('ef_plus').innerText = `$${Math.round(cap-bolsillo).toLocaleString()}`;
-    document.getElementById('ef_ratio').innerText = `+${(((cap-bolsillo)/bolsillo)*100).toFixed(1)}%`;
+    
+    // Evitar división por cero si no hay inversión
+    let ratio = bolsillo > 0 ? (((cap-bolsillo)/bolsillo)*100).toFixed(1) : 0;
+    document.getElementById('ef_ratio').innerText = `+${ratio}%`;
+    
     document.getElementById('fecha').innerText = "Simulado: " + new Date().toLocaleDateString();
     document.querySelector("#tabla tbody").innerHTML = html;
 
@@ -228,7 +241,9 @@ function calcular() {
         const ok = (s > 4000000 && t === 'B') || (s <= 4000000 && t === 'A');
         al.style.background = ok ? '#dcfce7' : '#fef9c3';
         al.innerHTML = ok ? "✅ <b>Régimen óptimo</b> detectado." : "⚠️ <b>Nota:</b> Verifique si el otro régimen le ahorra más.";
-    } else { al.style.display = 'none'; }
+    } else { 
+        al.style.display = 'none'; 
+    }
 
     const ctx = document.getElementById('chart').getContext('2d');
     if(miGrafico) miGrafico.destroy();
@@ -265,5 +280,5 @@ async function generarPDF() {
 }
 </script>
 </body>
-                             </html>
-    
+                    </html>
+                    
