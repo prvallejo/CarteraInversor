@@ -3,50 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>InvestPro v7.8 - Ultimate</title>
+    <title>InvestPro v8.0 - Professional Elite</title>
     
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <style>
         :root { --primary: #1e293b; --accent: #3b82f6; --success: #10b981; --warning: #f59e0b; --bg: #f8fafc; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: var(--primary); }
-        .container { max-width: 1100px; margin: auto; display: grid; grid-template-columns: 380px 1fr; gap: 20px; }
-        header { text-align: center; grid-column: 1 / -1; margin-bottom: 20px; }
-        .panel { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px rgb(0 0 0 / 0.1); }
-        .input-group { margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #f1f5f9; }
-        h3 { font-size: 13px; text-transform: uppercase; color: #64748b; margin: 0 0 10px; }
-        label { display: block; font-size: 12px; font-weight: bold; margin: 8px 0 4px; }
-        input, select { width: 100%; padding: 8px; border: 1px solid #e2e8f0; border-radius: 8px; box-sizing: border-box; font-size: 14px; }
-        .activo-row { display: flex; align-items: center; margin-bottom: 8px; gap: 8px; }
-        .check-pill { display: flex; align-items: center; background: #f1f5f9; padding: 4px 8px; border-radius: 8px; border: 1px solid #e2e8f0; min-width: 80px; }
-        .recurrente-label { font-size: 10px; font-weight: bold; margin-left: 5px; }
-        .btn-main { background: var(--accent); color: white; border: none; padding: 12px; width: 100%; border-radius: 10px; font-weight: bold; cursor: pointer; }
-        .btn-reset { background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; padding: 12px; border-radius: 10px; cursor: pointer; }
-        .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 15px 0; }
-        .card { padding: 12px; border-radius: 12px; text-align: center; color: white; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 15px; color: var(--primary); }
+        .container { max-width: 1100px; margin: auto; display: grid; grid-template-columns: 360px 1fr; gap: 20px; }
+        header { text-align: center; grid-column: 1 / -1; margin-bottom: 15px; }
+        .panel { background: white; padding: 18px; border-radius: 12px; box-shadow: 0 4px 6px rgb(0 0 0 / 0.05); }
+        .input-group { margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #f1f5f9; }
+        h3 { font-size: 12px; text-transform: uppercase; color: #64748b; margin: 0 0 8px; }
+        label { display: block; font-size: 11px; font-weight: bold; margin: 6px 0 2px; }
+        input, select { width: 100%; padding: 7px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 13px; }
+        
+        /* Ajuste Punto 4 y Checks */
+        .activo-row { display: grid; grid-template-columns: 1fr 100px; gap: 8px; margin-bottom: 6px; align-items: center; }
+        .small-input { padding: 5px; font-size: 12px; }
+        .check-pill { display: flex; align-items: center; gap: 4px; background: #f1f5f9; padding: 4px 6px; border-radius: 6px; border: 1px solid #e2e8f0; }
+        .recurrente-label { font-size: 9px; font-weight: bold; white-space: nowrap; }
+
+        .btn-main { background: var(--accent); color: white; border: none; padding: 10px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .btn-reset { background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; padding: 10px; border-radius: 8px; cursor: pointer; }
+        
+        /* Reporte y Gráfico */
+        .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 12px 0; }
+        .card { padding: 10px; border-radius: 10px; text-align: center; color: white; }
         .card-green { background: var(--success); }
         .card-blue { background: var(--accent); }
         .card-orange { background: var(--warning); }
-        .card .value { font-size: 16px; font-weight: bold; display: block; }
-        .alerta-box { padding: 12px; border-radius: 10px; margin-bottom: 15px; font-size: 13px; display: none; }
-        .alerta-success { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
-        .alerta-warning { background: #fef9c3; color: #854d0e; border: 1px solid #fef08a; }
-        .eficiencia-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; text-align: center; margin: 15px 0; }
-        .eficiencia-grid { display: flex; justify-content: space-around; margin-top: 10px; }
-        .eficiencia-val { font-size: 18px; font-weight: bold; }
-        table { width: 100%; border-collapse: collapse; font-size: 11px; }
-        th { background: #f8fafc; padding: 8px; border-bottom: 2px solid #e2e8f0; text-align: left; }
-        td { padding: 8px; border-bottom: 1px solid #f1f5f9; }
-        .btn-pdf { background: #1e293b; color: white; border: none; padding: 12px; width: 100%; border-radius: 10px; cursor: pointer; margin-top: 15px; }
+        .card .value { font-size: 14px; font-weight: bold; display: block; }
+        
+        .eficiencia-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; text-align: center; margin-top: 10px; }
+        .eficiencia-grid { display: flex; justify-content: space-around; margin-top: 8px; }
+        .eficiencia-val { font-size: 15px; font-weight: bold; }
+        
+        table { width: 100%; border-collapse: collapse; font-size: 10px; margin-top: 10px; }
+        th { background: #f8fafc; padding: 6px; border-bottom: 2px solid #e2e8f0; text-align: left; }
+        td { padding: 6px; border-bottom: 1px solid #f1f5f9; }
+        
+        #btn-pdf { background: #1e293b; color: white; border: none; padding: 12px; width: 100%; border-radius: 10px; cursor: pointer; margin-top: 15px; font-weight: bold; }
+
         @media (max-width: 768px) { .container { grid-template-columns: 1fr; } }
     </style>
 </head>
-<body onload="setup()">
+<body onload="init()">
 
 <header>
-    <h1>InvestPro <span>Elite</span></h1>
-    <p>Simulador de Estrategia Patrimonial</p>
+    <h1 style="margin:0;">InvestPro <span>Elite</span> v8.0</h1>
 </header>
 
 <div class="container">
@@ -55,7 +62,7 @@
             <h3>1. Perfil e Horizonte</h3>
             <label>Sueldo Bruto Mensual:</label>
             <input type="number" id="sueldo" value="5000000">
-            <label>Años:</label>
+            <label>Horizonte:</label>
             <select id="horizonte">
                 <option value="5">5 Años</option>
                 <option value="10" selected>10 Años</option>
@@ -64,33 +71,29 @@
         </div>
 
         <div class="input-group">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div style="display:flex; justify-content:space-between;">
                 <h3>2. Inversión Inicial</h3>
-                <input type="checkbox" id="check_monto" onchange="toggleBox('box_monto', this)">
+                <input type="checkbox" id="check_monto" onchange="toggleInit(this)">
             </div>
-            <div id="box_monto" style="display:none; margin-top:10px;">
-                <input type="number" id="monto_inicial" placeholder="¿Cuánto tienes hoy?">
-            </div>
+            <input type="number" id="monto_inicial" style="display:none; margin-top:5px;" placeholder="$ Monto hoy">
         </div>
 
         <div class="input-group">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div style="display:flex; justify-content:space-between;">
                 <h3>3. Plan APV</h3>
                 <input type="checkbox" id="check_apv" checked onchange="toggleAPV(this)">
             </div>
-            <div id="area_apv">
+            <div id="ui_apv">
                 <label>Ahorro Mensual:</label>
                 <input type="number" id="apv_monto" value="250000">
                 <label>Régimen:</label>
-                <select id="apv_tipo" onchange="actualizarRegimenUI()">
+                <select id="apv_tipo" onchange="checkRegimen()">
                     <option value="A">Régimen A (Bono 15%)</option>
-                    <option value="B" selected>Régimen B (Ahorro Tax)</option>
+                    <option value="B" selected>Régimen B (Impuestos)</option>
                 </select>
-                <div id="box_reinversion" style="margin-top:10px; background:#eff6ff; padding:8px; border-radius:8px;">
-                    <div style="display:flex; align-items:center; gap:5px;">
-                        <input type="checkbox" id="check_reinv" checked onchange="updateLabel(this)">
-                        <span class="recurrente-label" id="label_check_reinv" style="font-size:9px;">SI - Reinviertes ahorro en impuesto</span>
-                    </div>
+                <div id="box_reinv" style="margin-top:8px; display:flex; align-items:center; gap:8px;">
+                    <input type="checkbox" id="check_reinv" checked onchange="upd(this)">
+                    <span class="recurrente-label" id="lab_check_reinv" style="color:var(--accent)">SI - Reinvertir ahorro</span>
                 </div>
             </div>
         </div>
@@ -98,169 +101,169 @@
         <div class="input-group">
             <h3>4. Otros Activos (Mensual)</h3>
             <div class="activo-row">
-                <input type="number" id="inv_cl" placeholder="Acciones CL">
-                <div class="check-pill"><input type="checkbox" id="rec_cl" checked onchange="updateLabel(this)"><span class="recurrente-label" id="label_rec_cl">SI</span></div>
+                <input type="number" id="inv_cl" class="small-input" placeholder="Acciones CL">
+                <div class="check-pill"><input type="checkbox" id="rec_cl" checked onchange="upd(this)"><span class="recurrente-label" id="lab_rec_cl">SI</span></div>
             </div>
             <div class="activo-row">
-                <input type="number" id="inv_us" placeholder="ETFs USA">
-                <div class="check-pill"><input type="checkbox" id="rec_us" checked onchange="updateLabel(this)"><span class="recurrente-label" id="label_rec_us">SI</span></div>
+                <input type="number" id="inv_us" class="small-input" placeholder="ETFs USA">
+                <div class="check-pill"><input type="checkbox" id="rec_us" checked onchange="upd(this)"><span class="recurrente-label" id="lab_rec_us">SI</span></div>
             </div>
             <div class="activo-row">
-                <input type="number" id="inv_mm" placeholder="DAP / Cash">
-                <div class="check-pill"><input type="checkbox" id="rec_mm" checked onchange="updateLabel(this)"><span class="recurrente-label" id="label_rec_mm">SI</span></div>
+                <input type="number" id="inv_mm" class="small-input" placeholder="DAP / Cash">
+                <div class="check-pill"><input type="checkbox" id="rec_mm" checked onchange="upd(this)"><span class="recurrente-label" id="lab_rec_mm">SI</span></div>
             </div>
         </div>
 
-        <div style="display:grid; grid-template-columns: 2fr 1fr; gap:10px;">
-            <button onclick="simular()" class="btn-main">SIMULAR</button>
-            <button onclick="limpiar()" class="btn-reset">LIMPIAR</button>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+            <button onclick="calcular()" class="btn-main">SIMULAR</button>
+            <button onclick="location.reload()" class="btn-reset">LIMPIAR</button>
         </div>
     </section>
 
-    <section class="panel" id="reporte-final">
-        <div id="pdf-area">
-            <h2 style="text-align:center; margin:0;">Reporte Patrimonial Pro</h2>
-            <p id="fecha-rep" style="text-align:center; font-size:10px; color:#94a3b8; margin-bottom:10px;"></p>
-            <div id="alerta-box" class="alerta-box"></div>
-            <div style="height:230px; margin-bottom:15px;"><canvas id="myChart"></canvas></div>
+    <section class="panel" id="reporte-global">
+        <div id="area-impresion" style="padding:10px; background:white;">
+            <h2 style="text-align:center; color:var(--primary); margin:0;">Reporte Patrimonial Pro</h2>
+            <p id="fecha" style="text-align:center; font-size:10px; color:#94a3b8; margin-bottom:10px;"></p>
+            
+            <div id="alerta" style="display:none; padding:10px; border-radius:8px; font-size:12px; margin-bottom:10px;"></div>
+
+            <div style="height:220px;"><canvas id="chart"></canvas></div>
+
             <div class="summary-grid">
-                <div class="card card-green"><span>CAPITAL FINAL</span><span id="res_total" class="value">$0</span></div>
-                <div class="card card-blue"><span>JUBILACIÓN (MES)</span><span id="res_retiro" class="value">$0</span></div>
-                <div class="card card-orange"><span>TAX ESTIMADO</span><span id="res_tax" class="value">$0</span></div>
+                <div class="card card-green"><span>PATRIMONIO</span><span id="res_total" class="value">$0</span></div>
+                <div class="card card-blue"><span>RETIRO (4%)</span><span id="res_retiro" class="value">$0</span></div>
+                <div class="card card-orange"><span>TAX PAGADO</span><span id="res_tax" class="value">$0</span></div>
             </div>
+
             <div class="eficiencia-box">
-                <h3 style="font-size:11px;">Eficiencia de Inversión</h3>
+                <h3>Análisis de Eficiencia Real</h3>
                 <div class="eficiencia-grid">
-                    <div><div style="font-size:9px; color:#64748b;">TOTAL APORTADO</div><div id="ef_inv" class="eficiencia-val">$0</div></div>
-                    <div><div style="font-size:9px; color:#64748b;">GANANCIA NETA</div><div id="ef_plus" class="eficiencia-val" style="color:#10b981;">$0</div></div>
+                    <div><div style="font-size:9px;">TU INVERSIÓN</div><div id="ef_inv" class="eficiencia-val">$0</div></div>
+                    <div><div style="font-size:9px; color:var(--success);">GANANCIA</div><div id="ef_plus" class="eficiencia-val" style="color:var(--success);">$0</div></div>
+                    <div><div style="font-size:9px; color:var(--accent);">RATIO</div><div id="ef_ratio" class="eficiencia-val" style="color:var(--accent);">0%</div></div>
                 </div>
             </div>
-            <table id="tabla-resultados">
+
+            <table id="tabla">
                 <thead><tr><th>Año</th><th>Capital</th><th>Renta</th><th>Tax</th></tr></thead>
                 <tbody></tbody>
             </table>
         </div>
-        <button onclick="descargarPDF()" class="btn-pdf">DESCARGAR PDF</button>
+        <button id="btn-pdf" onclick="generarPDF()">DESCARGAR REPORTE PDF</button>
     </section>
 </div>
 
 <script>
-let chart = null;
+let miGrafico = null;
 
-function setup() {
-    actualizarRegimenUI();
-    document.querySelectorAll('input[type="checkbox"]').forEach(updateLabel);
+function init() {
+    upd(document.getElementById('check_reinv'));
+    upd(document.getElementById('rec_cl'));
+    upd(document.getElementById('rec_us'));
+    upd(document.getElementById('rec_mm'));
 }
 
-function updateLabel(el) {
-    const label = document.getElementById('label_' + el.id);
-    if (!label) return;
-    if (el.id === 'check_reinv') {
-        label.innerText = el.checked ? "SI - Reinviertes ahorro en impuesto" : "NO - Ahorrado libre disposición 🤣👌";
-    } else {
-        label.innerText = el.checked ? "SI - Recurrente" : "NO - Única vez";
-    }
+function upd(el) {
+    const lab = document.getElementById('lab_' + el.id);
+    if(lab) lab.innerText = el.checked ? (el.id === 'check_reinv' ? "SI - Reinvertir" : "SI") : "NO";
 }
 
-function toggleBox(id, el) { document.getElementById(id).style.display = el.checked ? 'block' : 'none'; }
-function toggleAPV(el) { document.getElementById('area_apv').style.opacity = el.checked ? '1' : '0.4'; }
-function actualizarRegimenUI() {
-    const tipo = document.getElementById('apv_tipo').value;
-    document.getElementById('box_reinversion').style.display = (tipo === 'B') ? 'block' : 'none';
-}
-function limpiar() { location.reload(); }
+function toggleInit(el) { document.getElementById('monto_inicial').style.display = el.checked ? 'block' : 'none'; }
+function toggleAPV(el) { document.getElementById('ui_apv').style.opacity = el.checked ? '1' : '0.3'; document.getElementById('ui_apv').style.pointerEvents = el.checked ? 'auto' : 'none'; }
+function checkRegimen() { document.getElementById('box_reinv').style.display = document.getElementById('apv_tipo').value === 'B' ? 'flex' : 'none'; }
 
-function simular() {
-    const sueldo = parseFloat(document.getElementById('sueldo').value) || 0;
+function calcular() {
+    const s = parseFloat(document.getElementById('sueldo').value) || 0;
+    const hor = parseInt(document.getElementById('horizonte').value);
     const apvOn = document.getElementById('check_apv').checked;
-    const apvMonto = apvOn ? (parseFloat(document.getElementById('apv_monto').value) || 0) : 0;
-    const tipo = document.getElementById('apv_tipo').value;
-    const reinvB = document.getElementById('check_reinv').checked;
-    const horizonte = parseInt(document.getElementById('horizonte').value);
-    const inicial = document.getElementById('check_monto').checked ? (parseFloat(document.getElementById('monto_inicial').value) || 0) : 0;
+    const apvM = apvOn ? (parseFloat(document.getElementById('apv_monto').value) || 0) : 0;
+    const re = document.getElementById('check_reinv').checked;
+    const t = document.getElementById('apv_tipo').value;
+    const ini = document.getElementById('check_monto').checked ? (parseFloat(document.getElementById('monto_inicial').value) || 0) : 0;
 
-    // Alerta
-    const alerta = document.getElementById('alerta-box');
-    if (apvOn) {
-        alerta.style.display = 'block';
-        const convieneB = sueldo > 4000000;
-        if ((convieneB && tipo === 'B') || (!convieneB && tipo === 'A')) {
-            alerta.className = "alerta-box alerta-success";
-            alerta.innerHTML = `✅ <b>¡Correcto!</b> Régimen ${tipo} óptimo para su sueldo.`;
-        } else {
-            alerta.className = "alerta-box alerta-warning";
-            alerta.innerHTML = `⚠️ <b>Sugerencia:</b> Para su renta, el Régimen ${convieneB?'B':'A'} es más eficiente.`;
-        }
-    } else { alerta.style.display = 'none'; }
+    let cap = ini, bolsillo = ini, totalTax = 0;
+    let labels = [], data = [], html = "";
 
-    // Motor
-    let cap = inicial;
-    let invPropia = inicial;
-    let totalTax = 0;
-    let labels = [], data = [], tableBody = "";
-
-    for (let i = 1; i <= horizonte; i++) {
-        let renta = cap * 0.05;
-        let tax = renta * 0.15;
+    for (let i = 1; i <= hor; i++) {
+        let r = cap * 0.05, tax = r * 0.15;
         totalTax += tax;
-
-        // Aportes Otros
-        let otrosAnual = 0;
-        ['cl', 'us', 'mm'].forEach(k => {
+        
+        // Otros Activos
+        let oAnual = 0;
+        ['cl','us','mm'].forEach(k => {
             let v = parseFloat(document.getElementById('inv_'+k).value) || 0;
-            if (document.getElementById('rec_'+k).checked || i === 1) {
-                otrosAnual += (v * 12);
-                invPropia += (v * 12);
-            }
+            if (document.getElementById('rec_'+k).checked || i === 1) { oAnual += (v * 12); bolsillo += (v * 12); }
         });
 
-        // Aporte APV
-        let iny = otrosAnual + (apvMonto * 12);
-        if (apvOn) {
-            invPropia += (apvMonto * 12);
-            if (tipo === 'A') iny += (apvMonto * 12 * 0.15);
-            if (tipo === 'B' && reinvB) iny += (apvMonto * 12 * 0.25);
+        // APV
+        let inyAPV = apvM * 12;
+        if(apvOn) {
+            bolsillo += inyAPV;
+            if(t==='A') inyAPV += (inyAPV * 0.15);
+            if(t==='B' && re) inyAPV += (inyAPV * 0.25);
         }
 
-        cap += iny + renta - tax;
-        labels.push("Año " + i);
+        cap += (r - tax) + inyAPV + oAnual;
+        labels.push("Año "+i);
         data.push(Math.round(cap));
 
-        if (i===1 || i%5===0 || i===horizonte) {
-            tableBody += `<tr><td>Año ${i}</td><td>$${Math.round(cap).toLocaleString()}</td><td>$${Math.round(renta).toLocaleString()}</td><td>$${Math.round(tax).toLocaleString()}</td></tr>`;
+        if(i===1 || i%5===0 || i===hor) {
+            html += `<tr><td>Año ${i}</td><td>$${Math.round(cap).toLocaleString()}</td><td>$${Math.round(r).toLocaleString()}</td><td>$${Math.round(tax).toLocaleString()}</td></tr>`;
         }
     }
 
-    // UI
+    // Renderizar
     document.getElementById('res_total').innerText = `$${Math.round(cap).toLocaleString()}`;
     document.getElementById('res_retiro').innerText = `$${Math.round((cap*0.04)/12).toLocaleString()}`;
     document.getElementById('res_tax').innerText = `$${Math.round(totalTax).toLocaleString()}`;
-    document.getElementById('ef_inv').innerText = `$${Math.round(invPropia).toLocaleString()}`;
-    document.getElementById('ef_plus').innerText = `$${Math.round(cap - invPropia).toLocaleString()}`;
-    document.querySelector("#tabla-resultados tbody").innerHTML = tableBody;
-    document.getElementById('fecha-rep').innerText = "Simulado el " + new Date().toLocaleDateString();
+    document.getElementById('ef_inv').innerText = `$${Math.round(bolsillo).toLocaleString()}`;
+    document.getElementById('ef_plus').innerText = `$${Math.round(cap-bolsillo).toLocaleString()}`;
+    document.getElementById('ef_ratio').innerText = `+${(((cap-bolsillo)/bolsillo)*100).toFixed(1)}%`;
+    document.getElementById('fecha').innerText = "Simulado: " + new Date().toLocaleDateString();
+    document.querySelector("#tabla tbody").innerHTML = html;
 
-    const ctx = document.getElementById('myChart').getContext('2d');
-    if (chart) chart.destroy();
-    chart = new Chart(ctx, {
+    const al = document.getElementById('alerta');
+    if(apvOn) {
+        al.style.display = 'block';
+        const ok = (s > 4000000 && t === 'B') || (s <= 4000000 && t === 'A');
+        al.style.background = ok ? '#dcfce7' : '#fef9c3';
+        al.innerHTML = ok ? "✅ <b>Régimen óptimo</b> detectado." : "⚠️ <b>Nota:</b> Verifique si el otro régimen le ahorra más.";
+    } else { al.style.display = 'none'; }
+
+    const ctx = document.getElementById('chart').getContext('2d');
+    if(miGrafico) miGrafico.destroy();
+    miGrafico = new Chart(ctx, {
         type: 'line',
-        data: { labels, datasets: [{ data, borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', fill: true }] },
-        options: { animation: false, responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+        data: { labels, datasets: [{ data, borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', fill: true, tension: 0.3 }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
     });
 }
 
-function descargarPDF() {
-    const element = document.getElementById('pdf-area');
-    const opt = {
-        margin: 10,
-        filename: 'Reporte_InvestPro_v78.pdf',
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    };
-    html2pdf().set(opt).from(element).save();
+async function generarPDF() {
+    const { jsPDF } = window.jspdf;
+    const area = document.getElementById('area-impresion');
+    const btn = document.getElementById('btn-pdf');
+    
+    btn.innerText = "PROCESANDO...";
+    btn.disabled = true;
+
+    try {
+        const canvas = await html2canvas(area, { scale: 2, useCORS: true, logging: false });
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const width = pdf.internal.pageSize.getWidth();
+        const height = (canvas.height * width) / canvas.width;
+        
+        pdf.addImage(imgData, 'PNG', 0, 10, width, height);
+        pdf.save('Reporte_Patrimonial_v8.pdf');
+    } catch (e) {
+        alert("Error al generar PDF: " + e);
+    } finally {
+        btn.innerText = "DESCARGAR REPORTE PDF";
+        btn.disabled = false;
+    }
 }
 </script>
 </body>
-                                                                           </html>
-                                                                           
+                             </html>
+    
