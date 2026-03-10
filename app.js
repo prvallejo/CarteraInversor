@@ -1,10 +1,6 @@
 let myChart = null;
 
-window.onload = () => {
-    actualizarInterfazAPV();
-    document.querySelectorAll('input[type="checkbox"]').forEach(updateCheckLabel);
-};
-
+// Control de etiquetas SI/NO y visibilidad de RegB
 function updateCheckLabel(el) {
     const label = document.getElementById('label_' + el.id) || document.getElementById('label_reinv');
     if (!label) return;
@@ -17,28 +13,37 @@ function updateCheckLabel(el) {
     label.style.color = el.checked ? "#1e40af" : "#64748b";
 }
 
-function toggleBox(id, el) {
-    document.getElementById(id).style.display = el.checked ? 'block' : 'none';
-}
-
 function actualizarInterfazAPV() {
     const tipo = document.getElementById('apv_tipo').value;
     const box = document.getElementById('box_reinversion');
     if (box) box.style.display = (tipo === 'B') ? 'block' : 'none';
 }
 
-function limpiarCampos() {
-    location.reload(); 
-}
-
+// SIMULACIÓN Y ALERTAS
 function ejecutarSimulacion() {
+    // 1. Captura de datos
     const sueldo = parseFloat(document.getElementById('sueldo').value) || 0;
+    const inicial = document.getElementById('check_monto').checked ? (parseFloat(document.getElementById('monto_inicial').value) || 0) : 0;
     const apvMensual = document.getElementById('check_apv').checked ? (parseFloat(document.getElementById('apv_monto').value) || 0) : 0;
     const tipoAPV = document.getElementById('apv_tipo').value;
     const reinvierteB = document.getElementById('check_reinversion').checked;
     const horizonte = parseInt(document.getElementById('horizonte').value);
-    const inicial = document.getElementById('check_monto').checked ? (parseFloat(document.getElementById('monto_inicial').value) || 0) : 0;
-    
+
+    // 2. Lógica de Alerta (TU PEDIDO)
+    const alerta = document.getElementById('alerta-regimen');
+    const convieneB = (sueldo > 4000000); 
+    alerta.style.display = 'block';
+
+    if ((convieneB && tipoAPV === 'B') || (!convieneB && tipoAPV === 'A')) {
+        alerta.className = "alerta-box alerta-success";
+        alerta.innerHTML = `✅ <strong>¡Correcto!</strong> El Régimen ${tipoAPV} es el más adecuado para su renta de $${sueldo.toLocaleString()}.`;
+    } else {
+        alerta.className = "alerta-box alerta-warning";
+        const sugerido = convieneB ? 'B' : 'A';
+        alerta.innerHTML = `⚠️ <strong>Sugerencia:</strong> El Régimen ${sugerido} sería más eficiente que el ${tipoAPV} para su renta de $${sueldo.toLocaleString()}.`;
+    }
+
+    // 3. Cálculos
     let capital = inicial;
     let totalTax = 0;
     let labels = [];
@@ -59,7 +64,7 @@ function ejecutarSimulacion() {
 
         let inyeccion = (apvMensual * 12) + otrosAnual;
         if (tipoAPV === 'A') inyeccion += (apvMensual * 12 * 0.15);
-        if (tipoAPV === 'B' && reinvierteB) inyeccion += (apvMensual * 12 * 0.30); // Estimación ahorro tax
+        if (tipoAPV === 'B' && reinvierteB) inyeccion += (apvMensual * 12 * 0.25); 
 
         capital += inyeccion + rentaAnual - impuesto;
         labels.push("Año " + i);
@@ -70,22 +75,12 @@ function ejecutarSimulacion() {
         }
     }
 
+    // 4. Inyectar Resultados (Evita los ceros)
     document.getElementById('res_total').innerText = `$${Math.round(capital).toLocaleString()}`;
     document.getElementById('res_retiro').innerText = `$${Math.round((capital * 0.04)/12).toLocaleString()}`;
     document.getElementById('res_tax').innerText = `$${Math.round(totalTax).toLocaleString()}`;
     document.querySelector("#tax-table tbody").innerHTML = tableBody;
-
-    // Alerta de Régimen (Error E anterior solucionado)
-    const alerta = document.getElementById('alerta-regimen');
-    alerta.style.display = 'block';
-    const convieneB = sueldo > 4000000;
-    if ((convieneB && tipoAPV === 'B') || (!convieneB && tipoAPV === 'A')) {
-        alerta.className = "alerta-box alerta-success";
-        alerta.innerHTML = `✅ <strong>¡Correcto!</strong> El Régimen ${tipoAPV} es el más adecuado para su renta de $${sueldo.toLocaleString()}.`;
-    } else {
-        alerta.className = "alerta-box alerta-warning";
-        alerta.innerHTML = `⚠️ <strong>Sugerencia:</strong> El Régimen ${convieneB ? 'B' : 'A'} es el más adecuado para su renta de $${sueldo.toLocaleString()}.`;
-    }
+    document.getElementById('fecha-reporte').innerText = "Simulación: " + new Date().toLocaleDateString();
 
     renderChart(labels, data);
 }
@@ -99,25 +94,38 @@ function renderChart(labels, data) {
             labels,
             datasets: [{ data: data, borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', fill: true, tension: 0.3 }]
         },
-        options: { animation: false, responsive: true, maintainAspectRatio: false }
+        options: { 
+            animation: { onComplete: () => { window.chartReady = true; } }, // Marcador para el PDF
+            responsive: true, 
+            maintainAspectRatio: false 
+        }
     });
 }
 
 function exportarPDF() {
     const element = document.getElementById('pdf-content');
-    const btn = document.querySelector('.btn-pdf');
+    const btn = document.getElementById('btn-exportar');
+    
     btn.style.visibility = 'hidden';
 
-    // Aumentamos el delay para asegurar que el PDF capture la alerta y el gráfico
+    const opt = {
+        margin: 10,
+        filename: 'Reporte_InvestPro_Elite.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, letterRendering: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    // Delay de seguridad para que el PDF no salga en blanco
     setTimeout(() => {
-        html2pdf().set({
-            margin: 5,
-            filename: 'InvestPro_Final_Report.pdf',
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2, useCORS: true },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        }).from(element).save().then(() => {
+        html2pdf().set(opt).from(element).save().then(() => {
+            btn.style.visibility = 'visible';
+        }).catch(err => {
+            console.error("Error PDF:", err);
             btn.style.visibility = 'visible';
         });
     }, 1000);
-                         }
+}
+
+function limpiarCampos() { location.reload(); }
+        
