@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>InvestPro v7.7 - Global Engine</title>
+    <title>InvestPro v7.8 - Ultimate</title>
     
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -18,45 +18,35 @@
         h3 { font-size: 13px; text-transform: uppercase; color: #64748b; margin: 0 0 10px; }
         label { display: block; font-size: 12px; font-weight: bold; margin: 8px 0 4px; }
         input, select { width: 100%; padding: 8px; border: 1px solid #e2e8f0; border-radius: 8px; box-sizing: border-box; font-size: 14px; }
-        
-        /* Checkboxes e Interfaz */
         .activo-row { display: flex; align-items: center; margin-bottom: 8px; gap: 8px; }
-        .check-pill { display: flex; align-items: center; background: #f1f5f9; padding: 4px 8px; border-radius: 8px; border: 1px solid #e2e8f0; min-width: 110px; }
+        .check-pill { display: flex; align-items: center; background: #f1f5f9; padding: 4px 8px; border-radius: 8px; border: 1px solid #e2e8f0; min-width: 80px; }
         .recurrente-label { font-size: 10px; font-weight: bold; margin-left: 5px; }
-        
         .btn-main { background: var(--accent); color: white; border: none; padding: 12px; width: 100%; border-radius: 10px; font-weight: bold; cursor: pointer; }
         .btn-reset { background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; padding: 12px; border-radius: 10px; cursor: pointer; }
-        
-        /* Reporte */
         .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 15px 0; }
         .card { padding: 12px; border-radius: 12px; text-align: center; color: white; }
         .card-green { background: var(--success); }
         .card-blue { background: var(--accent); }
         .card-orange { background: var(--warning); }
         .card .value { font-size: 16px; font-weight: bold; display: block; }
-        
         .alerta-box { padding: 12px; border-radius: 10px; margin-bottom: 15px; font-size: 13px; display: none; }
         .alerta-success { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
         .alerta-warning { background: #fef9c3; color: #854d0e; border: 1px solid #fef08a; }
-
         .eficiencia-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; text-align: center; margin: 15px 0; }
         .eficiencia-grid { display: flex; justify-content: space-around; margin-top: 10px; }
         .eficiencia-val { font-size: 18px; font-weight: bold; }
-        
         table { width: 100%; border-collapse: collapse; font-size: 11px; }
         th { background: #f8fafc; padding: 8px; border-bottom: 2px solid #e2e8f0; text-align: left; }
         td { padding: 8px; border-bottom: 1px solid #f1f5f9; }
-        
         .btn-pdf { background: #1e293b; color: white; border: none; padding: 12px; width: 100%; border-radius: 10px; cursor: pointer; margin-top: 15px; }
-
         @media (max-width: 768px) { .container { grid-template-columns: 1fr; } }
     </style>
 </head>
-<body onload="inicializarApp()">
+<body onload="setup()">
 
 <header>
     <h1>InvestPro <span>Elite</span></h1>
-    <p>Estrategia de Optimización Patrimonial</p>
+    <p>Simulador de Estrategia Patrimonial</p>
 </header>
 
 <div class="container">
@@ -65,7 +55,7 @@
             <h3>1. Perfil e Horizonte</h3>
             <label>Sueldo Bruto Mensual:</label>
             <input type="number" id="sueldo" value="5000000">
-            <label>Años de simulación:</label>
+            <label>Años:</label>
             <select id="horizonte">
                 <option value="5">5 Años</option>
                 <option value="10" selected>10 Años</option>
@@ -79,27 +69,27 @@
                 <input type="checkbox" id="check_monto" onchange="toggleBox('box_monto', this)">
             </div>
             <div id="box_monto" style="display:none; margin-top:10px;">
-                <input type="number" id="monto_inicial" placeholder="Monto hoy">
+                <input type="number" id="monto_inicial" placeholder="¿Cuánto tienes hoy?">
             </div>
         </div>
 
         <div class="input-group">
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <h3>3. Plan APV</h3>
-                <input type="checkbox" id="check_apv" checked onchange="toggleAPVUI(this)">
+                <input type="checkbox" id="check_apv" checked onchange="toggleAPV(this)">
             </div>
-            <div id="ui_apv_inner">
+            <div id="area_apv">
                 <label>Ahorro Mensual:</label>
                 <input type="number" id="apv_monto" value="250000">
                 <label>Régimen:</label>
-                <select id="apv_tipo" onchange="actualizarInterfazRegimen()">
+                <select id="apv_tipo" onchange="actualizarRegimenUI()">
                     <option value="A">Régimen A (Bono 15%)</option>
                     <option value="B" selected>Régimen B (Ahorro Tax)</option>
                 </select>
-                <div id="box_reinversion" style="margin-top:10px; background:#eff6ff; padding:8px; border-radius:8px; border:1px dashed #3b82f6;">
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <input type="checkbox" id="check_reinversion" checked onchange="updateCheckLabel(this)">
-                        <span class="recurrente-label" id="label_reinv">SI - Reinviertes ahorro en impuesto</span>
+                <div id="box_reinversion" style="margin-top:10px; background:#eff6ff; padding:8px; border-radius:8px;">
+                    <div style="display:flex; align-items:center; gap:5px;">
+                        <input type="checkbox" id="check_reinv" checked onchange="updateLabel(this)">
+                        <span class="recurrente-label" id="label_check_reinv" style="font-size:9px;">SI - Reinviertes ahorro en impuesto</span>
                     </div>
                 </div>
             </div>
@@ -109,204 +99,168 @@
             <h3>4. Otros Activos (Mensual)</h3>
             <div class="activo-row">
                 <input type="number" id="inv_cl" placeholder="Acciones CL">
-                <div class="check-pill"><input type="checkbox" id="rec_cl" checked onchange="updateCheckLabel(this)"><span class="recurrente-label" id="label_rec_cl">SI</span></div>
+                <div class="check-pill"><input type="checkbox" id="rec_cl" checked onchange="updateLabel(this)"><span class="recurrente-label" id="label_rec_cl">SI</span></div>
             </div>
             <div class="activo-row">
                 <input type="number" id="inv_us" placeholder="ETFs USA">
-                <div class="check-pill"><input type="checkbox" id="rec_us" checked onchange="updateCheckLabel(this)"><span class="recurrente-label" id="label_rec_us">SI</span></div>
+                <div class="check-pill"><input type="checkbox" id="rec_us" checked onchange="updateLabel(this)"><span class="recurrente-label" id="label_rec_us">SI</span></div>
             </div>
             <div class="activo-row">
                 <input type="number" id="inv_mm" placeholder="DAP / Cash">
-                <div class="check-pill"><input type="checkbox" id="rec_mm" checked onchange="updateCheckLabel(this)"><span class="recurrente-label" id="label_rec_mm">SI</span></div>
+                <div class="check-pill"><input type="checkbox" id="rec_mm" checked onchange="updateLabel(this)"><span class="recurrente-label" id="label_rec_mm">SI</span></div>
             </div>
         </div>
 
         <div style="display:grid; grid-template-columns: 2fr 1fr; gap:10px;">
-            <button onclick="ejecutarSimulacion()" class="btn-main">SIMULAR</button>
-            <button onclick="limpiarCampos()" class="btn-reset">LIMPIAR</button>
+            <button onclick="simular()" class="btn-main">SIMULAR</button>
+            <button onclick="limpiar()" class="btn-reset">LIMPIAR</button>
         </div>
     </section>
 
-    <section class="panel" id="pdf-container">
-        <div id="capture-area">
-            <h2 style="text-align:center; margin:0; color:#1e293b;">Reporte Patrimonial Elite</h2>
-            <p id="fecha-reporte" style="text-align:center; font-size:10px; color:#94a3b8; margin-bottom:15px;"></p>
-            
-            <div id="alerta-regimen" class="alerta-box"></div>
-
-            <div style="height:230px; margin-bottom:20px;">
-                <canvas id="projectionChart"></canvas>
-            </div>
-
+    <section class="panel" id="reporte-final">
+        <div id="pdf-area">
+            <h2 style="text-align:center; margin:0;">Reporte Patrimonial Pro</h2>
+            <p id="fecha-rep" style="text-align:center; font-size:10px; color:#94a3b8; margin-bottom:10px;"></p>
+            <div id="alerta-box" class="alerta-box"></div>
+            <div style="height:230px; margin-bottom:15px;"><canvas id="myChart"></canvas></div>
             <div class="summary-grid">
-                <div class="card card-green"><span>PATRIMONIO FINAL</span><span id="res_total" class="value">$0</span></div>
+                <div class="card card-green"><span>CAPITAL FINAL</span><span id="res_total" class="value">$0</span></div>
                 <div class="card card-blue"><span>JUBILACIÓN (MES)</span><span id="res_retiro" class="value">$0</span></div>
-                <div class="card card-orange"><span>TAX PAGADO</span><span id="res_tax" class="value">$0</span></div>
+                <div class="card card-orange"><span>TAX ESTIMADO</span><span id="res_tax" class="value">$0</span></div>
             </div>
-
-            <div class="eficiencia-box" id="eficiencia-panel">
-                <h3 style="margin-bottom:8px; font-size:11px;">Análisis de Eficiencia</h3>
+            <div class="eficiencia-box">
+                <h3 style="font-size:11px;">Eficiencia de Inversión</h3>
                 <div class="eficiencia-grid">
-                    <div><div style="font-size:9px; color:#64748b;">INVERSIÓN PROPIA</div><div id="ef_inv" class="eficiencia-val">$0</div></div>
-                    <div><div style="font-size:9px; color:#64748b;">PLUSVALÍA NETA</div><div id="ef_plus" class="eficiencia-val" style="color:#10b981;">$0</div></div>
-                    <div><div style="font-size:9px; color:#64748b;">RATIO FINAL</div><div id="ef_ratio" class="eficiencia-val" style="color:#3b82f6;">0%</div></div>
+                    <div><div style="font-size:9px; color:#64748b;">TOTAL APORTADO</div><div id="ef_inv" class="eficiencia-val">$0</div></div>
+                    <div><div style="font-size:9px; color:#64748b;">GANANCIA NETA</div><div id="ef_plus" class="eficiencia-val" style="color:#10b981;">$0</div></div>
                 </div>
             </div>
-
-            <table id="tax-table">
-                <thead><tr><th>Año</th><th>Capital Acum.</th><th>Renta Año</th><th>Tax Pagado</th></tr></thead>
+            <table id="tabla-resultados">
+                <thead><tr><th>Año</th><th>Capital</th><th>Renta</th><th>Tax</th></tr></thead>
                 <tbody></tbody>
             </table>
         </div>
-        <button id="btn-pdf" onclick="exportarPDF()" class="btn-pdf">DESCARGAR REPORTE PDF</button>
+        <button onclick="descargarPDF()" class="btn-pdf">DESCARGAR PDF</button>
     </section>
 </div>
 
 <script>
-let myChart = null;
+let chart = null;
 
-function inicializarApp() {
-    actualizarInterfazRegimen();
-    updateCheckLabel(document.getElementById('check_reinversion'));
+function setup() {
+    actualizarRegimenUI();
+    document.querySelectorAll('input[type="checkbox"]').forEach(updateLabel);
 }
 
-function updateCheckLabel(el) {
-    if (!el) return;
-    const label = document.getElementById('label_' + el.id) || el.nextElementSibling;
-    if (el.id === 'check_reinversion') {
-        label.innerText = el.checked ? "SI - Reinviertes ahorro en impuesto" : "NO - Ahorrado libre disposición";
+function updateLabel(el) {
+    const label = document.getElementById('label_' + el.id);
+    if (!label) return;
+    if (el.id === 'check_reinv') {
+        label.innerText = el.checked ? "SI - Reinviertes ahorro en impuesto" : "NO - Ahorrado libre disposición 🤣👌";
     } else {
-        label.innerText = el.checked ? "SI" : "NO";
+        label.innerText = el.checked ? "SI - Recurrente" : "NO - Única vez";
     }
-}
-
-function toggleAPVUI(el) {
-    document.getElementById('ui_apv_inner').style.opacity = el.checked ? "1" : "0.3";
-    document.getElementById('ui_apv_inner').style.pointerEvents = el.checked ? "auto" : "none";
 }
 
 function toggleBox(id, el) { document.getElementById(id).style.display = el.checked ? 'block' : 'none'; }
-
-function actualizarInterfazRegimen() {
+function toggleAPV(el) { document.getElementById('area_apv').style.opacity = el.checked ? '1' : '0.4'; }
+function actualizarRegimenUI() {
     const tipo = document.getElementById('apv_tipo').value;
-    document.getElementById('box_reinversion').style.visibility = (tipo === 'B') ? 'visible' : 'hidden';
+    document.getElementById('box_reinversion').style.display = (tipo === 'B') ? 'block' : 'none';
 }
+function limpiar() { location.reload(); }
 
-function ejecutarSimulacion() {
-    // 1. Datos
+function simular() {
     const sueldo = parseFloat(document.getElementById('sueldo').value) || 0;
-    const apvActivo = document.getElementById('check_apv').checked;
-    const apvMensual = apvActivo ? (parseFloat(document.getElementById('apv_monto').value) || 0) : 0;
-    const tipoAPV = document.getElementById('apv_tipo').value;
-    const reinvierteB = document.getElementById('check_reinversion').checked;
+    const apvOn = document.getElementById('check_apv').checked;
+    const apvMonto = apvOn ? (parseFloat(document.getElementById('apv_monto').value) || 0) : 0;
+    const tipo = document.getElementById('apv_tipo').value;
+    const reinvB = document.getElementById('check_reinv').checked;
     const horizonte = parseInt(document.getElementById('horizonte').value);
     const inicial = document.getElementById('check_monto').checked ? (parseFloat(document.getElementById('monto_inicial').value) || 0) : 0;
 
-    // Alerta (Solo si APV está activo)
-    const alerta = document.getElementById('alerta-regimen');
-    if (apvActivo) {
+    // Alerta
+    const alerta = document.getElementById('alerta-box');
+    if (apvOn) {
         alerta.style.display = 'block';
         const convieneB = sueldo > 4000000;
-        if ((convieneB && tipoAPV === 'B') || (!convieneB && tipoAPV === 'A')) {
+        if ((convieneB && tipo === 'B') || (!convieneB && tipo === 'A')) {
             alerta.className = "alerta-box alerta-success";
-            alerta.innerHTML = `✅ <b>¡Eficiente!</b> Régimen ${tipoAPV} correcto para su renta.`;
+            alerta.innerHTML = `✅ <b>¡Correcto!</b> Régimen ${tipo} óptimo para su sueldo.`;
         } else {
             alerta.className = "alerta-box alerta-warning";
-            alerta.innerHTML = `⚠️ <b>Aviso:</b> Para $${sueldo.toLocaleString()}, el Régimen ${convieneB?'B':'A'} suele ser mejor.`;
+            alerta.innerHTML = `⚠️ <b>Sugerencia:</b> Para su renta, el Régimen ${convieneB?'B':'A'} es más eficiente.`;
         }
     } else { alerta.style.display = 'none'; }
 
-    // 2. Motor Global
-    let capital = inicial;
-    let inversionBolsillo = inicial;
+    // Motor
+    let cap = inicial;
+    let invPropia = inicial;
     let totalTax = 0;
-    let labels = [];
-    let data = [];
-    let tableBody = "";
+    let labels = [], data = [], tableBody = "";
 
     for (let i = 1; i <= horizonte; i++) {
-        let rentaAnual = capital * 0.05;
-        let impuesto = rentaAnual * 0.15;
-        totalTax += impuesto;
-        
-        // Inyección activos mensuales
+        let renta = cap * 0.05;
+        let tax = renta * 0.15;
+        totalTax += tax;
+
+        // Aportes Otros
         let otrosAnual = 0;
-        ['cl', 'us', 'mm'].forEach(key => {
-            let val = parseFloat(document.getElementById('inv_'+key).value) || 0;
-            if (document.getElementById('rec_'+key).checked || i === 1) {
-                otrosAnual += (val * 12);
-                inversionBolsillo += (val * 12);
+        ['cl', 'us', 'mm'].forEach(k => {
+            let v = parseFloat(document.getElementById('inv_'+k).value) || 0;
+            if (document.getElementById('rec_'+k).checked || i === 1) {
+                otrosAnual += (v * 12);
+                invPropia += (v * 12);
             }
         });
 
-        // Lógica APV
-        let ahorroTax = (tipoAPV === 'B' && apvActivo) ? (apvMensual * 12 * 0.25) : 0;
-        let bonoA = (tipoAPV === 'A' && apvActivo) ? (apvMensual * 12 * 0.15) : 0;
-        
-        let inyeccionTotal = otrosAnual + (apvMensual * 12);
-        if (apvActivo) {
-            inversionBolsillo += (apvMensual * 12);
-            if (tipoAPV === 'A') inyeccionTotal += bonoA;
-            if (tipoAPV === 'B' && reinvierteB) inyeccionTotal += ahorroTax;
+        // Aporte APV
+        let iny = otrosAnual + (apvMonto * 12);
+        if (apvOn) {
+            invPropia += (apvMonto * 12);
+            if (tipo === 'A') iny += (apvMonto * 12 * 0.15);
+            if (tipo === 'B' && reinvB) iny += (apvMonto * 12 * 0.25);
         }
 
-        capital += inyeccionTotal + rentaAnual - impuesto;
+        cap += iny + renta - tax;
         labels.push("Año " + i);
-        data.push(Math.round(capital));
+        data.push(Math.round(cap));
 
-        if (i === 1 || i % 5 === 0 || i === horizonte) {
-            tableBody += `<tr><td>Año ${i}</td><td>$${Math.round(capital).toLocaleString()}</td><td>$${Math.round(rentaAnual).toLocaleString()}</td><td>$${Math.round(impuesto).toLocaleString()}</td></tr>`;
+        if (i===1 || i%5===0 || i===horizonte) {
+            tableBody += `<tr><td>Año ${i}</td><td>$${Math.round(cap).toLocaleString()}</td><td>$${Math.round(renta).toLocaleString()}</td><td>$${Math.round(tax).toLocaleString()}</td></tr>`;
         }
     }
 
-    // 3. Renderizado
-    document.getElementById('res_total').innerText = `$${Math.round(capital).toLocaleString()}`;
-    document.getElementById('res_retiro').innerText = `$${Math.round((capital * 0.04)/12).toLocaleString()}`;
+    // UI
+    document.getElementById('res_total').innerText = `$${Math.round(cap).toLocaleString()}`;
+    document.getElementById('res_retiro').innerText = `$${Math.round((cap*0.04)/12).toLocaleString()}`;
     document.getElementById('res_tax').innerText = `$${Math.round(totalTax).toLocaleString()}`;
-    
-    document.getElementById('ef_inv').innerText = `$${Math.round(inversionBolsillo).toLocaleString()}`;
-    const plus = capital - inversionBolsillo;
-    document.getElementById('ef_plus').innerText = `$${Math.round(plus).toLocaleString()}`;
-    document.getElementById('ef_ratio').innerText = `+${((plus/inversionBolsillo)*100).toFixed(1)}%`;
+    document.getElementById('ef_inv').innerText = `$${Math.round(invPropia).toLocaleString()}`;
+    document.getElementById('ef_plus').innerText = `$${Math.round(cap - invPropia).toLocaleString()}`;
+    document.querySelector("#tabla-resultados tbody").innerHTML = tableBody;
+    document.getElementById('fecha-rep').innerText = "Simulado el " + new Date().toLocaleDateString();
 
-    document.querySelector("#tax-table tbody").innerHTML = tableBody;
-    document.getElementById('fecha-reporte').innerText = "Simulado el " + new Date().toLocaleDateString();
-    
-    renderChart(labels, data);
-}
-
-function renderChart(labels, data) {
-    const ctx = document.getElementById('projectionChart').getContext('2d');
-    if (myChart) myChart.destroy();
-    myChart = new Chart(ctx, {
+    const ctx = document.getElementById('myChart').getContext('2d');
+    if (chart) chart.destroy();
+    chart = new Chart(ctx, {
         type: 'line',
-        data: {
-            labels,
-            datasets: [{ data: data, borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', fill: true, tension: 0.3 }]
-        },
+        data: { labels, datasets: [{ data, borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', fill: true }] },
         options: { animation: false, responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
     });
 }
 
-function exportarPDF() {
-    const element = document.getElementById('capture-area');
-    const btn = document.getElementById('btn-pdf');
-    btn.style.display = 'none';
-
+function descargarPDF() {
+    const element = document.getElementById('pdf-area');
     const opt = {
         margin: 10,
-        filename: 'Reporte_InvestPro_v77.pdf',
+        filename: 'Reporte_InvestPro_v78.pdf',
         image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true },
+        html2canvas: { scale: 2 },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
-
-    html2pdf().set(opt).from(element).save().then(() => {
-        btn.style.display = 'block';
-    });
+    html2pdf().set(opt).from(element).save();
 }
-
-function limpiarCampos() { location.reload(); }
 </script>
 </body>
-</html>
+                                                                           </html>
+                                                                           
