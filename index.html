@@ -3,281 +3,345 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>InvestPro v8.0 - Professional Elite</title>
-    
+    <title>InvestPro v9.9.1 - Patrimonio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
     <style>
-        :root { --primary: #1e293b; --accent: #3b82f6; --success: #10b981; --warning: #f59e0b; --bg: #f8fafc; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 15px; color: var(--primary); }
-        .container { max-width: 1100px; margin: auto; display: grid; grid-template-columns: 360px 1fr; gap: 20px; }
-        header { text-align: center; grid-column: 1 / -1; margin-bottom: 15px; }
-        .panel { background: white; padding: 18px; border-radius: 12px; box-shadow: 0 4px 6px rgb(0 0 0 / 0.05); }
-        .input-group { margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #f1f5f9; }
-        h3 { font-size: 12px; text-transform: uppercase; color: #64748b; margin: 0 0 8px; }
-        label { display: block; font-size: 11px; font-weight: bold; margin: 6px 0 2px; }
-        input, select { width: 100%; padding: 7px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 13px; }
+        :root { --primary: #2563eb; --secondary: #1e293b; }
+        body { background-color: #f8fafc; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+        .card { background: white; border-radius: 1rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); border: 1px solid #e2e8f0; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .input-field { width: 100%; padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; font-size: 15px; }
+        .input-field:focus { outline: none; border: 2px solid var(--primary); }
+        .label-pro { display: block; text-transform: uppercase; font-size: 10px; font-weight: 800; color: #64748b; margin-bottom: 4px; }
+        .check-custom { width: 1.1rem; height: 1.1rem; cursor: pointer; accent-color: var(--primary); }
+        .badge-msg { padding: 0.5rem; border-radius: 0.5rem; font-size: 11px; font-weight: 700; text-align: center; margin-top: 0.5rem; }
         
-        .activo-row { display: grid; grid-template-columns: 1fr 100px; gap: 8px; margin-bottom: 6px; align-items: center; }
-        .small-input { padding: 5px; font-size: 12px; }
-        .check-pill { display: flex; align-items: center; gap: 4px; background: #f1f5f9; padding: 4px 6px; border-radius: 6px; border: 1px solid #e2e8f0; }
-        .recurrente-label { font-size: 9px; font-weight: bold; white-space: nowrap; }
+        #resTotal { font-size: clamp(1.5rem, 6vw, 2.75rem); line-height: 1; }
 
-        .btn-main { background: var(--accent); color: white; border: none; padding: 10px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        .btn-reset { background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; padding: 10px; border-radius: 8px; cursor: pointer; }
-        
-        .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 12px 0; }
-        .card { padding: 10px; border-radius: 10px; text-align: center; color: white; }
-        .card-green { background: var(--success); }
-        .card-blue { background: var(--accent); }
-        .card-orange { background: var(--warning); }
-        .card .value { font-size: 14px; font-weight: bold; display: block; }
-        
-        .eficiencia-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; text-align: center; margin-top: 10px; }
-        .eficiencia-grid { display: flex; justify-content: space-around; margin-top: 8px; }
-        .eficiencia-val { font-size: 15px; font-weight: bold; }
-        
-        table { width: 100%; border-collapse: collapse; font-size: 10px; margin-top: 10px; }
-        th { background: #f8fafc; padding: 6px; border-bottom: 2px solid #e2e8f0; text-align: left; }
-        td { padding: 6px; border-bottom: 1px solid #f1f5f9; }
-        
-        #btn-pdf { background: #1e293b; color: white; border: none; padding: 12px; width: 100%; border-radius: 10px; cursor: pointer; margin-top: 15px; font-weight: bold; }
+        .btn-export { transition: all 0.4s ease; }
+        .btn-disabled { opacity: 0.2; cursor: not-allowed; filter: grayscale(1); pointer-events: none; }
 
-        @media (max-width: 768px) { .container { grid-template-columns: 1fr; } }
+        @media print { 
+            .no-print { display: none !important; } 
+            body { padding: 0; background: white; }
+            .card { border: 1px solid #eee !important; box-shadow: none !important; }
+        }
     </style>
 </head>
-<body onload="init()">
+<body class="p-4 md:p-8">
 
-<header>
-    <h1 style="margin:0;">InvestPro <span>Elite</span> v8.0</h1>
-</header>
-
-<div class="container">
-    <section class="panel side-controls">
-        <div class="input-group">
-            <h3>1. Perfil e Horizonte</h3>
-            <label>Sueldo Bruto Mensual:</label>
-            <input type="number" id="sueldo" value="5000000">
-            <label>Horizonte:</label>
-            <select id="horizonte">
-                <option value="5">5 Años</option>
-                <option value="10" selected>10 Años</option>
-                <option value="20">20 Años</option>
-            </select>
-        </div>
-
-        <div class="input-group">
-            <div style="display:flex; justify-content:space-between;">
-                <h3>2. Inversión Inicial</h3>
-                <input type="checkbox" id="check_monto" onchange="toggleInit(this)">
+    <div class="max-w-5xl mx-auto">
+        <header class="bg-[#1e293b] p-6 rounded-2xl text-white shadow-xl mb-8 flex flex-col md:flex-row justify-between items-center border-b-4 border-blue-600">
+            <div class="text-center md:text-left w-full">
+                <h1 class="text-3xl font-black tracking-tighter text-blue-400">INVESTPRO <span class="text-white text-xl">v9.9.1</span></h1>
+                <p class="text-slate-400 text-[10px] font-bold tracking-[0.4em] uppercase">Simulador de Ingeniería Patrimonial</p>
             </div>
-            <input type="number" id="monto_inicial" style="display:none; margin-top:5px;" placeholder="$ Monto hoy">
-        </div>
-
-        <div class="input-group">
-            <div style="display:flex; justify-content:space-between;">
-                <h3>3. Plan APV</h3>
-                <input type="checkbox" id="check_apv" checked onchange="toggleAPV(this)">
+            <div class="flex items-center gap-4 mt-4 md:mt-0 whitespace-nowrap">
+                <p class="text-[10px] uppercase text-slate-400 font-bold tracking-widest">Simulación: <span id="fechaHoy" class="text-white"></span></p>
             </div>
-            <div id="ui_apv">
-                <label>Ahorro Mensual:</label>
-                <input type="number" id="apv_monto" value="250000">
-                <label>Régimen:</label>
-                <select id="apv_tipo" onchange="checkRegimen()">
-                    <option value="A">Régimen A (Bono 15%)</option>
-                    <option value="B" selected>Régimen B (Impuestos)</option>
-                </select>
-                <div id="box_reinv" style="margin-top:8px; display:flex; align-items:center; gap:8px;">
-                    <input type="checkbox" id="check_reinv" checked onchange="upd(this)">
-                    <span class="recurrente-label" id="lab_check_reinv" style="color:var(--accent)">SI - Reinvertir ahorro</span>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <!-- Entradas -->
+            <div class="lg:col-span-5 space-y-6 no-print">
+                
+                <!-- Horizonte y Sueldo -->
+                <div class="card p-6 border-l-4 border-l-orange-500">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="label-pro">Sueldo Bruto Mensual ($)</label>
+                            <input type="text" id="sueldoBruto" class="input-field font-bold" placeholder="0" oninput="formatAndValidate(this)">
+                        </div>
+                        <div>
+                            <label class="label-pro">Horizonte (Años)</label>
+                            <input type="number" id="horizonte" class="input-field font-bold" placeholder="0">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 1. Inversión Inicial -->
+                <div class="card p-5 border-l-4 border-l-slate-400">
+                    <div class="flex items-center justify-between mb-3">
+                        <label class="text-xs font-black text-slate-800 uppercase">1. Inversión Inicial (Semilla)</label>
+                        <input type="checkbox" id="checkInv" class="check-custom" onchange="toggleBox('boxInv', this.checked)">
+                    </div>
+                    <div id="boxInv" class="hidden pt-2 border-t">
+                        <input type="text" id="montoInv" class="input-field" placeholder="Monto Único Inicial ($)" oninput="formatCurrency(this)">
+                    </div>
+                </div>
+
+                <!-- 2. Estrategia APV -->
+                <div class="card p-5 border-l-4 border-l-blue-500">
+                    <div class="flex items-center justify-between mb-3">
+                        <label class="text-xs font-black text-slate-800 uppercase">2. Estrategia APV</label>
+                        <input type="checkbox" id="checkAPV" class="check-custom" onchange="toggleBox('boxAPV', this.checked)">
+                    </div>
+                    <div id="boxAPV" class="hidden space-y-4 pt-2 border-t">
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2">
+                                <input type="text" id="montoAPV" class="input-field flex-1 font-bold text-blue-700" placeholder="Monto APV ($)" oninput="formatCurrency(this)">
+                                <div class="flex flex-col items-center">
+                                    <input type="checkbox" id="checkAPVRecurrente" class="check-custom" checked onchange="updateAPVFreqLabel()">
+                                    <span class="text-[8px] font-bold text-slate-400 uppercase">Mensual</span>
+                                </div>
+                            </div>
+                            <p id="lblAPVFreq" class="text-[9px] font-bold text-blue-600 uppercase italic">Aporte recurrente todos los meses</p>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="label-pro">Régimen</label>
+                                <select id="regimenAPV" class="input-field" onchange="validarRegimen()">
+                                    <option value="A">Régimen A (Bonif. 15%)</option>
+                                    <option value="B" selected>Régimen B (Ahorro Tax)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="label-pro">Perfil Fondo</label>
+                                <select id="fondoAPV" class="input-field">
+                                    <option value="0.07" selected>Fondo A (7%)</option>
+                                    <option value="0.05">Fondo B (5%)</option>
+                                    <option value="0.03">Fondo C (3%)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div id="msgRegimen" class="badge-msg hidden"></div>
+
+                        <div id="reinversionContainer" class="flex items-center gap-3 p-2 bg-slate-50 rounded-lg border border-dashed border-slate-300">
+                            <input type="checkbox" id="reinversionAPV" class="check-custom" checked onchange="updateImpuestoLabel()">
+                            <span class="text-[10px] font-bold text-blue-600 uppercase">Reinvertir ahorro tributario</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Otros Activos -->
+                <div class="card p-5 border-l-4 border-l-emerald-500">
+                    <label class="text-xs font-black text-slate-800 uppercase mb-4 block">3. Otros Activos</label>
+                    <div class="space-y-4">
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2">
+                                <input type="text" id="montoAcc" class="input-field flex-1" placeholder="Acciones / ETFs ($)" oninput="formatCurrency(this)">
+                                <input type="checkbox" id="checkAcc" class="check-custom" onchange="updateOtherLabel('checkAcc', 'lblAcc')">
+                            </div>
+                            <p id="lblAcc" class="text-[9px] font-bold text-slate-400 uppercase">Monto único inicial</p>
+                        </div>
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2">
+                                <input type="text" id="montoETFs" class="input-field flex-1" placeholder="Cripto / Alternativos ($)" oninput="formatCurrency(this)">
+                                <input type="checkbox" id="checkETFs" class="check-custom" onchange="updateOtherLabel('checkETFs', 'lblETFs')">
+                            </div>
+                            <p id="lblETFs" class="text-[9px] font-bold text-slate-400 uppercase">Monto único inicial</p>
+                        </div>
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2">
+                                <input type="text" id="montoCash" class="input-field flex-1" placeholder="DAP / Money Market ($)" oninput="formatCurrency(this)">
+                                <input type="checkbox" id="checkCash" class="check-custom" onchange="updateOtherLabel('checkCash', 'lblCash')">
+                            </div>
+                            <p id="lblCash" class="text-[9px] font-bold text-slate-400 uppercase">Monto único inicial</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex gap-4">
+                    <button onclick="calcular()" class="flex-1 bg-blue-600 text-white font-black py-4 rounded-xl shadow-lg hover:bg-blue-700 transition-all uppercase text-sm">Calcular Proyección</button>
+                    <button onclick="limpiarUI()" class="bg-white border-2 border-slate-200 text-slate-400 font-bold px-6 rounded-xl hover:bg-slate-50 uppercase text-xs">Limpiar</button>
                 </div>
             </div>
-        </div>
 
-        <div class="input-group">
-            <h3>4. Otros Activos (Mensual)</h3>
-            <div class="activo-row">
-                <input type="number" id="inv_cl" class="small-input" placeholder="Acciones CL">
-                <div class="check-pill"><input type="checkbox" id="rec_cl" checked onchange="upd(this)"><span class="recurrente-label" id="lab_rec_cl">SI</span></div>
-            </div>
-            <div class="activo-row">
-                <input type="number" id="inv_us" class="small-input" placeholder="ETFs USA">
-                <div class="check-pill"><input type="checkbox" id="rec_us" checked onchange="upd(this)"><span class="recurrente-label" id="lab_rec_us">SI</span></div>
-            </div>
-            <div class="activo-row">
-                <input type="number" id="inv_mm" class="small-input" placeholder="DAP / Cash">
-                <div class="check-pill"><input type="checkbox" id="rec_mm" checked onchange="upd(this)"><span class="recurrente-label" id="lab_rec_mm">SI</span></div>
-            </div>
-        </div>
-
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-            <button onclick="calcular()" class="btn-main">SIMULAR</button>
-            <button onclick="location.reload()" class="btn-reset">LIMPIAR</button>
-        </div>
-    </section>
-
-    <section class="panel" id="reporte-global">
-        <div id="area-impresion" style="padding:10px; background:white;">
-            <h2 style="text-align:center; color:var(--primary); margin:0;">Reporte Patrimonial Pro</h2>
-            <p id="fecha" style="text-align:center; font-size:10px; color:#94a3b8; margin-bottom:10px;"></p>
-            
-            <div id="alerta" style="display:none; padding:10px; border-radius:8px; font-size:12px; margin-bottom:10px;"></div>
-
-            <div style="height:220px;"><canvas id="chart"></canvas></div>
-
-            <div class="summary-grid">
-                <div class="card card-green"><span>PATRIMONIO</span><span id="res_total" class="value">$0</span></div>
-                <div class="card card-blue"><span>RETIRO (4%)</span><span id="res_retiro" class="value">$0</span></div>
-                <div class="card card-orange"><span>TAX PAGADO</span><span id="res_tax" class="value">$0</span></div>
-            </div>
-
-            <div class="eficiencia-box">
-                <h3>Análisis de Eficiencia Real</h3>
-                <div class="eficiencia-grid">
-                    <div><div style="font-size:9px;">TU INVERSIÓN</div><div id="ef_inv" class="eficiencia-val">$0</div></div>
-                    <div><div style="font-size:9px; color:var(--success);">GANANCIA</div><div id="ef_plus" class="eficiencia-val" style="color:var(--success);">$0</div></div>
-                    <div><div style="font-size:9px; color:var(--accent);">RATIO</div><div id="ef_ratio" class="eficiencia-val" style="color:var(--accent);">0%</div></div>
+            <!-- Resultados -->
+            <div class="lg:col-span-7 space-y-6">
+                <div class="card p-6 h-[300px]">
+                    <canvas id="chartPatrimonio"></canvas>
                 </div>
+
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="card p-4 border-b-4 border-b-slate-400">
+                        <p class="text-[9px] font-bold text-slate-400 uppercase">Total Aportado</p>
+                        <p class="text-sm font-black text-slate-700">$<span id="repInvertido">0</span></p>
+                    </div>
+                    <div class="card p-4 border-b-4 border-b-blue-500">
+                        <p class="text-[9px] font-bold text-slate-400 uppercase">Ganancia Mercado</p>
+                        <p class="text-sm font-black text-blue-600">$<span id="repPlusvalia">0</span></p>
+                    </div>
+                    <div class="card p-4 border-b-4 border-b-emerald-500">
+                        <p class="text-[9px] font-bold text-slate-400 uppercase">ROI Acumulado</p>
+                        <p class="text-sm font-black text-emerald-600"><span id="repROI">0</span>%</p>
+                    </div>
+                    <div class="card p-4 border-b-4 border-b-orange-500">
+                        <p id="labelImpuestoCard" class="text-[9px] font-bold text-slate-400 uppercase">Impuesto Reinvertido</p>
+                        <p class="text-sm font-black text-orange-600">$<span id="repImpuesto">0</span></p>
+                    </div>
+                </div>
+
+                <div class="card bg-slate-900 text-white p-6 md:p-10 border-r-8 border-r-blue-500 relative overflow-hidden">
+                    <p class="text-blue-400 text-[10px] font-black uppercase tracking-[0.4em] mb-2">Patrimonio Final Proyectado</p>
+                    <div class="flex items-baseline gap-2">
+                        <span class="text-2xl font-light text-slate-500">$</span>
+                        <span id="resTotal" class="font-black">0</span>
+                    </div>
+                    <div class="mt-8 pt-4 border-t border-slate-800 flex flex-wrap gap-x-8 gap-y-2">
+                        <div>
+                            <p class="text-[9px] text-slate-500 font-bold uppercase">Eficiencia (ROI Anual)</p>
+                            <p class="text-xl font-black text-white"><span id="repEficiencia">0</span>%</p>
+                        </div>
+                        <div>
+                            <p class="text-[9px] text-slate-500 font-bold uppercase">Plazo del Plan</p>
+                            <p class="text-xl font-black text-blue-400"><span id="valHorizonte">0</span> Años</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <button id="btnPDF" onclick="window.print()" class="btn-export btn-disabled no-print w-full bg-slate-800 text-white font-bold py-4 rounded-xl text-xs uppercase hover:bg-black transition-all shadow-xl">Exportar Ingeniería de Patrimonio (PDF)</button>
             </div>
-
-            <table id="tabla">
-                <thead><tr><th>Año</th><th>Capital</th><th>Renta</th><th>Tax</th></tr></thead>
-                <tbody></tbody>
-            </table>
         </div>
-        <button id="btn-pdf" onclick="generarPDF()">DESCARGAR REPORTE PDF</button>
-    </section>
-</div>
+    </div>
 
-<script>
-let miGrafico = null;
+    <script>
+        let myChart;
+        document.getElementById('fechaHoy').innerText = new Date().toLocaleDateString('es-CL');
 
-function init() {
-    upd(document.getElementById('check_reinv'));
-    upd(document.getElementById('rec_cl'));
-    upd(document.getElementById('rec_us'));
-    upd(document.getElementById('rec_mm'));
-}
+        function formatNumber(n) {
+            return n.replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        }
 
-function upd(el) {
-    const lab = document.getElementById('lab_' + el.id);
-    if(lab) lab.innerText = el.checked ? (el.id === 'check_reinv' ? "SI - Reinvertir" : "SI") : "NO";
-}
-
-function toggleInit(el) { document.getElementById('monto_inicial').style.display = el.checked ? 'block' : 'none'; }
-
-// CORRECCIÓN: Oculta visualmente las opciones de APV
-function toggleAPV(el) { 
-    document.getElementById('ui_apv').style.display = el.checked ? 'block' : 'none'; 
-}
-
-function checkRegimen() { 
-    document.getElementById('box_reinv').style.display = document.getElementById('apv_tipo').value === 'B' ? 'flex' : 'none'; 
-}
-
-function calcular() {
-    const s = parseFloat(document.getElementById('sueldo').value) || 0;
-    const hor = parseInt(document.getElementById('horizonte').value);
-    const apvOn = document.getElementById('check_apv').checked;
-    const apvM = apvOn ? (parseFloat(document.getElementById('apv_monto').value) || 0) : 0;
-    const re = document.getElementById('check_reinv').checked;
-    const t = document.getElementById('apv_tipo').value;
-    const ini = document.getElementById('check_monto').checked ? (parseFloat(document.getElementById('monto_inicial').value) || 0) : 0;
-
-    let cap = ini, bolsillo = ini, totalTax = 0;
-    let labels = [], data = [], html = "";
-
-    for (let i = 1; i <= hor; i++) {
-        let r = cap * 0.05, tax = r * 0.15;
-        totalTax += tax;
-        
-        // Otros Activos
-        let oAnual = 0;
-        ['cl','us','mm'].forEach(k => {
-            let v = parseFloat(document.getElementById('inv_'+k).value) || 0;
-            if (document.getElementById('rec_'+k).checked || i === 1) { 
-                oAnual += (v * 12); 
-                bolsillo += (v * 12); 
+        function formatCurrency(input) {
+            let val = input.value.replace(/\./g, "");
+            if(!isNaN(val) && val !== "") {
+                input.value = formatNumber(val);
             }
-        });
-
-        // APV CORREGIDO: Se define inyAPV fuera del bloque para evitar errores de cálculo
-        let inyAPV = 0;
-        if(apvOn) {
-            inyAPV = apvM * 12;
-            bolsillo += inyAPV;
-            if(t==='A') inyAPV += (inyAPV * 0.15);
-            if(t==='B' && re) inyAPV += (inyAPV * 0.25);
         }
 
-        cap += (r - tax) + inyAPV + oAnual;
-        labels.push("Año "+i);
-        data.push(Math.round(cap));
-
-        if(i===1 || i%5===0 || i===hor) {
-            html += `<tr><td>Año ${i}</td><td>$${Math.round(cap).toLocaleString()}</td><td>$${Math.round(r).toLocaleString()}</td><td>$${Math.round(tax).toLocaleString()}</td></tr>`;
+        function getRaw(id) {
+            return parseFloat(document.getElementById(id).value.replace(/\./g, "")) || 0;
         }
-    }
 
-    // Renderizar Resultados
-    document.getElementById('res_total').innerText = `$${Math.round(cap).toLocaleString()}`;
-    document.getElementById('res_retiro').innerText = `$${Math.round((cap*0.04)/12).toLocaleString()}`;
-    document.getElementById('res_tax').innerText = `$${Math.round(totalTax).toLocaleString()}`;
-    document.getElementById('ef_inv').innerText = `$${Math.round(bolsillo).toLocaleString()}`;
-    document.getElementById('ef_plus').innerText = `$${Math.round(cap-bolsillo).toLocaleString()}`;
-    
-    // Evitar división por cero si no hay inversión
-    let ratio = bolsillo > 0 ? (((cap-bolsillo)/bolsillo)*100).toFixed(1) : 0;
-    document.getElementById('ef_ratio').innerText = `+${ratio}%`;
-    
-    document.getElementById('fecha').innerText = "Simulado: " + new Date().toLocaleDateString();
-    document.querySelector("#tabla tbody").innerHTML = html;
+        function toggleBox(id, show) {
+            document.getElementById(id).classList.toggle('hidden', !show);
+        }
 
-    const al = document.getElementById('alerta');
-    if(apvOn) {
-        al.style.display = 'block';
-        const ok = (s > 4000000 && t === 'B') || (s <= 4000000 && t === 'A');
-        al.style.background = ok ? '#dcfce7' : '#fef9c3';
-        al.innerHTML = ok ? "✅ <b>Régimen óptimo</b> detectado." : "⚠️ <b>Nota:</b> Verifique si el otro régimen le ahorra más.";
-    } else { 
-        al.style.display = 'none'; 
-    }
+        function formatAndValidate(input) {
+            formatCurrency(input);
+            validarRegimen();
+        }
 
-    const ctx = document.getElementById('chart').getContext('2d');
-    if(miGrafico) miGrafico.destroy();
-    miGrafico = new Chart(ctx, {
-        type: 'line',
-        data: { labels, datasets: [{ data, borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', fill: true, tension: 0.3 }] },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
-    });
-}
+        function updateAPVFreqLabel() {
+            const check = document.getElementById('checkAPVRecurrente').checked;
+            const lbl = document.getElementById('lblAPVFreq');
+            lbl.innerText = check ? "Aporte recurrente todos los meses" : "Aporte de una sola vez (Capital inicial)";
+            lbl.className = check ? "text-[9px] font-bold text-blue-600 uppercase italic" : "text-[9px] font-bold text-slate-400 uppercase italic";
+        }
 
-async function generarPDF() {
-    const { jsPDF } = window.jspdf;
-    const area = document.getElementById('area-impresion');
-    const btn = document.getElementById('btn-pdf');
-    
-    btn.innerText = "PROCESANDO...";
-    btn.disabled = true;
+        function updateOtherLabel(checkId, labelId) {
+            const check = document.getElementById(checkId).checked;
+            const lbl = document.getElementById(labelId);
+            lbl.innerText = check ? "Recurrente mensual" : "Monto único inicial";
+            lbl.className = check ? "text-[9px] font-bold text-blue-600 uppercase" : "text-[9px] font-bold text-slate-400 uppercase";
+        }
 
-    try {
-        const canvas = await html2canvas(area, { scale: 2, useCORS: true, logging: false });
-        const imgData = canvas.toDataURL('image/png');
-        const pdf = new jsPDF('p', 'mm', 'a4');
-        const width = pdf.internal.pageSize.getWidth();
-        const height = (canvas.height * width) / canvas.width;
-        
-        pdf.addImage(imgData, 'PNG', 0, 10, width, height);
-        pdf.save('Reporte_Patrimonial_v8.pdf');
-    } catch (e) {
-        alert("Error al generar PDF: " + e);
-    } finally {
-        btn.innerText = "DESCARGAR REPORTE PDF";
-        btn.disabled = false;
-    }
-}
-</script>
-</body>
-</html>
+        function updateImpuestoLabel() {
+            const reinv = document.getElementById('reinversionAPV').checked;
+            document.getElementById('labelImpuestoCard').innerText = reinv ? "Impuesto Reinvertido" : "Impuesto Disponible";
+        }
+
+        function validarRegimen() {
+            const sueldo = getRaw('sueldoBruto');
+            const regimen = document.getElementById('regimenAPV').value;
+            const msg = document.getElementById('msgRegimen');
+            const reContainer = document.getElementById('reinversionContainer');
+            reContainer.classList.toggle('hidden', regimen === 'A');
+            if (sueldo === 0) { msg.classList.add('hidden'); return; }
+            msg.classList.remove('hidden');
+            const convieneB = sueldo > 980000; 
+            if (regimen === 'B') {
+                msg.innerHTML = convieneB ? `✅ Régimen B ideal para su nivel de ingresos` : `⚠️ Se recomienda Régimen A para este tramo`;
+                msg.className = convieneB ? "badge-msg bg-green-100 text-green-700" : "badge-msg bg-red-100 text-red-700";
+            } else {
+                msg.innerHTML = !convieneB ? `✅ Régimen A ideal (Bonificación 15%)` : `⚠️ Podría ahorrar más con Régimen B`;
+                msg.className = !convieneB ? "badge-msg bg-green-100 text-green-700" : "badge-msg bg-red-100 text-red-700";
+            }
+        }
+
+        // FUNCIÓN DE LIMPIEZA SIN PARPADEO
+        function limpiarUI() {
+            // Limpiar inputs de texto
+            const inputs = document.querySelectorAll('input[type="text"], input[type="number"]');
+            inputs.forEach(input => input.value = "");
+            
+            // Limpiar checkboxes
+            const checks = document.querySelectorAll('input[type="checkbox"]');
+            checks.forEach(check => check.checked = false);
+
+            // Re-ocultar cajas
+            document.getElementById('boxInv').classList.add('hidden');
+            document.getElementById('boxAPV').classList.add('hidden');
+            document.getElementById('msgRegimen').classList.add('hidden');
+            document.getElementById('reinversionContainer').classList.add('hidden');
+
+            // Reset etiquetas
+            updateAPVFreqLabel();
+            updateOtherLabel('checkAcc', 'lblAcc');
+            updateOtherLabel('checkETFs', 'lblETFs');
+            updateOtherLabel('checkCash', 'lblCash');
+            updateImpuestoLabel();
+
+            // Reset resultados
+            document.getElementById('repInvertido').innerText = "0";
+            document.getElementById('repPlusvalia').innerText = "0";
+            document.getElementById('repROI').innerText = "0";
+            document.getElementById('repImpuesto').innerText = "0";
+            document.getElementById('resTotal').innerText = "0";
+            document.getElementById('repEficiencia').innerText = "0";
+            document.getElementById('valHorizonte').innerText = "0";
+            document.getElementById('btnPDF').classList.add('btn-disabled');
+
+            // Reset Chart
+            if(myChart) {
+                myChart.destroy();
+                myChart = null;
+            }
+        }
+
+        function calcular() {
+            const sueldo = getRaw('sueldoBruto');
+            const horizonte = parseInt(document.getElementById('horizonte').value) || 0;
+            if(sueldo <= 0 || horizonte <= 0) return;
+
+            let totalAportado = 0;
+            let saldoFinal = 0;
+            let beneficioFiscalAcumulado = 0;
+            const meses = horizonte * 12;
+
+            let tasaTax = 0;
+            if(sueldo > 4000000) tasaTax = 0.35;
+            else if(sueldo > 2500000) tasaTax = 0.23;
+            else if(sueldo > 1500000) tasaTax = 0.135;
+            else if(sueldo > 850000) tasaTax = 0.08;
+
+            // 1. Inversión Inicial
+            if(document.getElementById('checkInv').checked) {
+                const m = getRaw('montoInv');
+                totalAportado += m;
+                saldoFinal += m * Math.pow(1.07, horizonte);
+            }
+
+            // 2. APV
+            if(document.getElementById('checkAPV').checked) {
+                const mAPV = getRaw('montoAPV');
+                const isMensual = document.getElementById('checkAPVRecurrente').checked;
+                const tasaAnual = parseFloat(document.getElementById('fondoAPV').value);
+                const tasaMensual = Math.pow(1 + tasaAnual, 1/12) - 1;
+
+                if (isMensual) {
+                    totalAportado += (mAPV * meses);
+                    let subTotalAPV = mAPV * ((Math.pow(1 + tasaMensual, meses) - 1) / tasaMensual);
+                    
+                    if(document.getElementById('regimenAPV').value === 'A') {
+                        const bonifAnual = Math.min((mAPV * 12) * 0.15, 345000); 
+                        beneficioFiscalAcumulado += (bonifAnual * horizonte);
+                        saldoFinal += subTotalAPV + (bonifAnual * horizonte);
+                    } else {
+                        const ahorroAnual = (mAPV * 12) * tasaTax;
+                        beneficioFiscalAcumulado += (ahorroAnual * horizonte);
+                        if(document.getElementById('reinversionAPV').checked) {
+                            const mRe = ahorroAnual / 12;
+ 
