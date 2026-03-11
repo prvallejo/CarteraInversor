@@ -263,28 +263,23 @@
 
         // FUNCIÓN DE LIMPIEZA SIN PARPADEO
         function limpiarUI() {
-            // Limpiar inputs de texto
             const inputs = document.querySelectorAll('input[type="text"], input[type="number"]');
             inputs.forEach(input => input.value = "");
             
-            // Limpiar checkboxes
             const checks = document.querySelectorAll('input[type="checkbox"]');
             checks.forEach(check => check.checked = false);
 
-            // Re-ocultar cajas
             document.getElementById('boxInv').classList.add('hidden');
             document.getElementById('boxAPV').classList.add('hidden');
             document.getElementById('msgRegimen').classList.add('hidden');
             document.getElementById('reinversionContainer').classList.add('hidden');
 
-            // Reset etiquetas
             updateAPVFreqLabel();
             updateOtherLabel('checkAcc', 'lblAcc');
             updateOtherLabel('checkETFs', 'lblETFs');
             updateOtherLabel('checkCash', 'lblCash');
             updateImpuestoLabel();
 
-            // Reset resultados
             document.getElementById('repInvertido').innerText = "0";
             document.getElementById('repPlusvalia').innerText = "0";
             document.getElementById('repROI').innerText = "0";
@@ -294,7 +289,6 @@
             document.getElementById('valHorizonte').innerText = "0";
             document.getElementById('btnPDF').classList.add('btn-disabled');
 
-            // Reset Chart
             if(myChart) {
                 myChart.destroy();
                 myChart = null;
@@ -317,14 +311,12 @@
             else if(sueldo > 1500000) tasaTax = 0.135;
             else if(sueldo > 850000) tasaTax = 0.08;
 
-            // 1. Inversión Inicial
             if(document.getElementById('checkInv').checked) {
                 const m = getRaw('montoInv');
                 totalAportado += m;
                 saldoFinal += m * Math.pow(1.07, horizonte);
             }
 
-            // 2. APV
             if(document.getElementById('checkAPV').checked) {
                 const mAPV = getRaw('montoAPV');
                 const isMensual = document.getElementById('checkAPVRecurrente').checked;
@@ -344,4 +336,9 @@
                         beneficioFiscalAcumulado += (ahorroAnual * horizonte);
                         if(document.getElementById('reinversionAPV').checked) {
                             const mRe = ahorroAnual / 12;
- 
+                            subTotalAPV += mRe * ((Math.pow(1 + tasaMensual, meses) - 1) / tasaMensual);
+                        }
+                        saldoFinal += subTotalAPV;
+                    }
+                } else {
+                    total
